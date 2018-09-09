@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <LinearLayout
+        android:id="@+id/page_container"
+        style="@style/PageContainer">
+
+        <!--todo toolbar -->
+
+        <!--todo enable scroll for non list page -->
+        <!--<android.support.v4.widget.NestedScrollView
+            android:id="@+id/nested_scroll_view"
+            style="@style/SectionScroll">-->
+
+        <ProgressBar
+            android:id="@+id/progress_inline"
+            style="@style/ProgressBarInline"
+            android:visibility="gone" />
+
+        <FrameLayout
+            android:id="@+id/frame_layout"
+            style="@style/MatchParentLayout"
+            android:visibility="gone" />
+
+        <!--</android.support.v4.widget.NestedScrollView>-->
+
+    </LinearLayout>
+</layout>
