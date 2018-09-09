@@ -34,7 +34,7 @@ abstract class DataViewModel<Data> : ViewModel() {
 
     protected fun <Model> callback(callable: (Model?) -> Unit, payload: Model?, interactive: Boolean? = null) {
         if (canCallback()) {
-            if (interactive ?: false) {
+            if (interactive == true) {
                 hideLoading()
             }
             callable(payload)
