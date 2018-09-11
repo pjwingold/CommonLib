@@ -11,6 +11,7 @@ import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.io.IOException
 import java.util.concurrent.TimeUnit
 
 /**
@@ -20,12 +21,28 @@ object RetrofitRepo {
     private val BASE_URL = String.format("%s://%s:%s/%s/",
             Common.config.schema(), Common.config.host(), Common.config.port(), Common.config.contextRoot())
 
-    val HTTP_LOG_INTERCEPTOR = HttpLoggingInterceptor()
-            .setLevel(if (Common.config.debug()) HttpLoggingInterceptor.Level.BODY else HttpLoggingInterceptor.Level.NONE)
+    private val HTTP_LOG_INTERCEPTOR by lazy {
+        HttpLoggingInterceptor()
+                .setLevel(if (Common.config.debug()) HttpLoggingInterceptor.Level.BODY else HttpLoggingInterceptor.Level.NONE)
+    }
+
+    private val BASIC_AUTH_INTERCEPTOR by lazy {
+        Interceptor {
+            //todo implement conversion if no base64 set
+            val credentials = Common.config.credentialBase64()
+            injectAuth(it, String.format("Basic %s", credentials))
+        }
+    }
 
     val RETROFIT_OPEN_AUTH = Retrofit.Builder()
             .baseUrl(BASE_URL)
             .client(httpClient(HTTP_LOG_INTERCEPTOR))
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
+    val RETROFIT_BASIC_AUTH = Retrofit.Builder()
+            .baseUrl(BASE_URL)
+            .client(httpClient(HTTP_LOG_INTERCEPTOR, BASIC_AUTH_INTERCEPTOR))
             .addConverterFactory(GsonConverterFactory.create())
             .build()
 
@@ -43,6 +60,18 @@ object RetrofitRepo {
         }
 
         return builder.build()
+    }
+
+    @Throws(IOException::class)
+    private fun injectAuth(chain: Interceptor.Chain, authorisation: String): okhttp3.Response {
+        val original = chain.request()
+        val builder = original.newBuilder()
+                .header("Connection", "close")
+                .header("Accept", Common.config.acceptHeader())
+                .header("Authorization", authorisation)
+                .method(original.method(), original.body())
+
+        return chain.proceed(builder.build())
     }
 
     @Throws(Exception::class)

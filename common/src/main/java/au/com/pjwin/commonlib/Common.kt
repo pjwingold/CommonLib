@@ -38,5 +38,9 @@ class Common {
         fun connectionTimeout(): Long
 
         fun debug(): Boolean
+
+        fun credentialBase64() = ""
+
+        fun acceptHeader() = "application/json"//can set text/xml if need
     }
 }
