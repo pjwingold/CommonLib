@@ -49,4 +49,16 @@
         <item name="android:layout_gravity">center</item>
         <item name="android:progressDrawable">@drawable/progress_bar_inline</item>
     </style>
+
+    <style name="Control" parent="WrapContentLayout" />
+
+    <style name="Control.EditText">
+        <item name="android:background">@drawable/edit_text</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">@dimen/edit_text_height</item>
+        <item name="android:padding">@dimen/content_spacing_small</item>
+        <item name="android:layout_marginBottom">@dimen/content_spacing</item>
+        <item name="android:layout_marginTop">@dimen/content_spacing_small</item>
+        <item name="android:textSize">@dimen/text_size_body</item>
+    </style>
 </resources>

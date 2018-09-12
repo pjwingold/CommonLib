@@ -10,25 +10,31 @@ import au.com.pjwin.commonlib.Common
 
 abstract class DataViewModel<Data> : ViewModel() {
 
-    val liveData = MutableLiveData<Data>()
-    val errorData = MutableLiveData<Throwable>()
-    val loadingData = MutableLiveData<Boolean>()
+    internal val liveData = MutableLiveData<Data>()
+    internal val errorData = MutableLiveData<Throwable>()
+    internal val loadingData = MutableLiveData<Boolean>()
+    internal val completeData = MutableLiveData<Boolean>()
 
-    fun onData(data: Data?) {
+    open fun onData(data: Data?) {
         hideLoading()
         liveData.postValue(data)
     }
 
-    fun onError(throwable: Throwable?) {
+    open fun onError(throwable: Throwable?) {
         hideLoading()
         errorData.postValue(throwable)
     }
 
-    fun hideLoading() {
+    open fun onComplete(success: Boolean) {
+        hideLoading()
+        completeData.postValue(success)
+    }
+
+    open fun hideLoading() {
         loadingData.postValue(false)
     }
 
-    fun showLoading() {
+    open fun showLoading() {
         loadingData.postValue(true)
     }
 
@@ -44,5 +50,8 @@ abstract class DataViewModel<Data> : ViewModel() {
         }
     }
 
-    private fun canCallback() = liveData.hasActiveObservers() || Common.isUnitTest
+    /**
+     * in case the activity is destroyed by back button press
+     */
+    protected fun canCallback() = liveData.hasActiveObservers() || Common.isUnitTest
 }

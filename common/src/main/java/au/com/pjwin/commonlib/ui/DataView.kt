@@ -1,11 +1,17 @@
 package au.com.pjwin.commonlib.ui
 
+import android.app.AlertDialog
 import android.arch.lifecycle.LifecycleOwner
 import android.arch.lifecycle.Observer
+import android.support.annotation.StringRes
+import android.text.InputType
+import android.widget.EditText
+import au.com.pjwin.commonlib.R
 import au.com.pjwin.commonlib.viewmodel.DataViewModel
 import java.io.IOException
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
+
 
 /**
  * share between activity/fragment
@@ -42,7 +48,12 @@ interface DataView<Data> : LifecycleOwner {
     fun registerObservers(dataViewModel: DataViewModel<Data>) {
         dataViewModel.liveData.observe(this, Observer<Data> { onData(it) })
         dataViewModel.errorData.observe(this, Observer<Throwable> { onError(it) })
-        dataViewModel.loadingData.observe(this, Observer<Boolean> { it -> it?.let { if (it) showLoading() else hideLoading() } })
+        dataViewModel.loadingData.observe(this, Observer<Boolean> { it ->
+            it?.let {
+                if (it) showLoading()
+                else hideLoading()
+            }
+        })
     }
 
     fun onData(data: Data?) {
@@ -87,5 +98,27 @@ interface DataView<Data> : LifecycleOwner {
 
     fun onRestError() {
 
+    }
+
+    fun showBasicInputDialog(@StringRes titleId: Int, okAction: (String) -> Unit, cancelAction: (() -> Unit)? = null) {
+        val activity: BaseActivity<*, *, *> = getBaseActivity()
+        if (activity.isFinishing() || activity.isDestroyed()) {
+            return
+        }
+
+        val builder = AlertDialog.Builder(activity)
+        builder.setTitle(titleId)
+
+        val input = EditText(activity)
+        input.inputType = InputType.TYPE_CLASS_TEXT
+        builder.setView(input)
+
+        builder.setPositiveButton(R.string.button_ok) { _, _ -> okAction(input.text.toString()) }
+        builder.setNegativeButton(R.string.button_cancel) { dialog, _ ->
+            cancelAction?.invoke()
+            dialog.cancel()
+        }
+
+        builder.show()
     }
 }

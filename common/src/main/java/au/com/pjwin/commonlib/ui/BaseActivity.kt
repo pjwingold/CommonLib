@@ -49,7 +49,7 @@ abstract class BaseActivity<Data, ChildViewModel : DataViewModel<Data>, Binding 
     }
 
     protected fun setupViewModel() {
-        viewModel = ViewModelProviders.of(this).get(getViewModelClass())
+        viewModel = ViewModelProviders.of(this)[getViewModelClass()]
         registerObservers(viewModel)
 
         if (viewModel is VoidViewModel) {

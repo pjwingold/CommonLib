@@ -9,7 +9,11 @@ open class Pref {
 
         val SHARED_PREF: SharedPreferences = Util.context().getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
 
-        operator fun set(key: String, value: Any?) = SHARED_PREF.set(key, value)
+        operator fun set(key: Key, value: Any?) = SHARED_PREF.set(key, value)
+    }
+
+    interface Key {
+        var value: String
     }
 }
 
@@ -19,24 +23,24 @@ inline fun SharedPreferences.edit(operation: (SharedPreferences.Editor) -> Unit)
     editor.apply()
 }
 
-operator fun SharedPreferences.set(key: String, value: Any?) {
+operator fun SharedPreferences.set(key: Pref.Key, value: Any?) {
     when (value) {
-        is String? -> edit { it.putString(key, value) }
-        is Int -> edit { it.putInt(key, value) }
-        is Boolean -> edit { it.putBoolean(key, value) }
-        is Float -> edit { it.putFloat(key, value) }
-        is Long -> edit { it.putLong(key, value) }
+        is String? -> edit { it.putString(key.value, value) }
+        is Int -> edit { it.putInt(key.value, value) }
+        is Boolean -> edit { it.putBoolean(key.value, value) }
+        is Float -> edit { it.putFloat(key.value, value) }
+        is Long -> edit { it.putLong(key.value, value) }
         else -> throw UnsupportedOperationException("Not yet implemented")
     }
 }
 
-inline operator fun <reified T : Any> SharedPreferences.get(key: String, defaultValue: T? = null): T? {
+inline operator fun <reified T : Any> SharedPreferences.get(key: Pref.Key, defaultValue: T? = null): T? {
     return when (T::class) {
-        String::class -> getString(key, defaultValue as? String) as T?
-        Int::class -> getInt(key, defaultValue as? Int ?: -1) as T?
-        Boolean::class -> getBoolean(key, defaultValue as? Boolean ?: false) as T?
-        Float::class -> getFloat(key, defaultValue as? Float ?: -1f) as T?
-        Long::class -> getLong(key, defaultValue as? Long ?: -1) as T?
+        String::class -> getString(key.value, defaultValue as? String) as T?
+        Int::class -> getInt(key.value, defaultValue as? Int ?: -1) as T
+        Boolean::class -> getBoolean(key.value, defaultValue as? Boolean ?: false) as T
+        Float::class -> getFloat(key.value, defaultValue as? Float ?: -1f) as T
+        Long::class -> getLong(key.value, defaultValue as? Long ?: -1) as T
         else -> throw UnsupportedOperationException("Not yet implemented")
     }
 }

@@ -19,8 +19,7 @@
 
         <FrameLayout
             android:id="@+id/frame_layout"
-            style="@style/MatchParentLayout"
-            android:visibility="gone" />
+            style="@style/MatchParentLayout" />
 
         <!--</android.support.v4.widget.NestedScrollView>-->
 
