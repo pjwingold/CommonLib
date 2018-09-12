@@ -1,6 +1,9 @@
 A common library for supporting a MVVM architecture 
 
 Make sure it is at the same directory as the App module
+ie 
+/home/user/YourApp
+/home/user/CommonLib
 
 It supports the following types of repository:
 
