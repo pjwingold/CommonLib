@@ -7,7 +7,7 @@ ie
 
 It supports the following types of repository:
 
-Firebase
+MBaaS ie Firebase, Kumulos etc
 
 Retrofit
 
