@@ -12,6 +12,7 @@ import android.view.View
 import android.view.ViewGroup
 import au.com.pjwin.commonlib.extension.baseActivity
 import au.com.pjwin.commonlib.viewmodel.DataViewModel
+import java.io.Serializable
 
 abstract class BaseFragment<Data, ChildViewModel : DataViewModel<Data>, Binding : ViewDataBinding> :
         Fragment(), DataView<Data> {
@@ -62,5 +63,16 @@ abstract class BaseFragment<Data, ChildViewModel : DataViewModel<Data>, Binding 
         } else {
             super.showLoading()
         }
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    fun <T : BaseFragment<*, *, *>> setArguments(vararg values: Serializable): T {
+        val bundle = Bundle()
+        for (i in values.indices) {
+            bundle.putSerializable(i.toString(), values[i])
+        }
+
+        arguments = bundle
+        return this as T
     }
 }

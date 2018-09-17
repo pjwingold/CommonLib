@@ -11,6 +11,7 @@ import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.converter.simplexml.SimpleXmlConverterFactory
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
@@ -34,17 +35,32 @@ object RetrofitRepo {
         }
     }
 
-    val RETROFIT_OPEN_AUTH = Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .client(httpClient(HTTP_LOG_INTERCEPTOR))
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
+    @JvmStatic
+    val RETROFIT_OPEN_AUTH_XML by lazy {
+        Retrofit.Builder()
+                .baseUrl(BASE_URL)
+                .client(httpClient(HTTP_LOG_INTERCEPTOR))
+                .addConverterFactory(SimpleXmlConverterFactory.create())
+                .build()
+    }
 
-    val RETROFIT_BASIC_AUTH = Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .client(httpClient(HTTP_LOG_INTERCEPTOR, BASIC_AUTH_INTERCEPTOR))
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
+    @JvmStatic
+    val RETROFIT_OPEN_AUTH by lazy {
+        Retrofit.Builder()
+                .baseUrl(BASE_URL)
+                .client(httpClient(HTTP_LOG_INTERCEPTOR))
+                .addConverterFactory(GsonConverterFactory.create())
+                .build()
+    }
+
+    @JvmStatic
+    val RETROFIT_BASIC_AUTH by lazy {
+        Retrofit.Builder()
+                .baseUrl(BASE_URL)
+                .client(httpClient(HTTP_LOG_INTERCEPTOR, BASIC_AUTH_INTERCEPTOR))
+                .addConverterFactory(GsonConverterFactory.create())
+                .build()
+    }
 
     @SuppressLint("VisibleForTests")
     private fun httpClient(vararg interceptors: Interceptor): OkHttpClient {
@@ -69,6 +85,7 @@ object RetrofitRepo {
                 .header("Connection", "close")
                 .header("Accept", Common.config.acceptHeader())
                 .header("Authorization", authorisation)
+                //todo add UserAgent
                 .method(original.method(), original.body())
 
         return chain.proceed(builder.build())
