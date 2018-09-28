@@ -13,21 +13,22 @@ import android.view.ViewGroup
 abstract class RecyclerListAdapter<Data, Binding : ViewDataBinding, ViewHolder : RecyclerView.ViewHolder>() :
         RecyclerView.Adapter<ViewHolder>() {
 
-    protected var list: List<Data>? = listOf()//need listOf to compile
+    var list: List<Data>? = null
         set(value) {
             field = value
             notifyDataSetChanged()
         }
 
     private lateinit var layoutInflater: LayoutInflater
-    private var onClickListener: ((Data) -> Unit)? = null
+
+    private var onClickListener: ListClickListener<Data>? = null
 
     constructor(context: Context, list: List<Data>?) : this() {
         layoutInflater = LayoutInflater.from(context)
         this.list = list
     }
 
-    constructor(context: Context, list: List<Data>, onClickListener: (Data) -> Unit) : this(context, list) {
+    constructor(context: Context, list: List<Data>, onClickListener: ListClickListener<Data>) : this(context, list) {
         this.onClickListener = onClickListener
     }
 
@@ -57,7 +58,7 @@ abstract class RecyclerListAdapter<Data, Binding : ViewDataBinding, ViewHolder :
                 bindData(bind, data)
 
                 onClickListener?.let { listener ->
-                    binding.root.setOnClickListener { _ -> listener.invoke(data) }
+                    binding.root.setOnClickListener { _ -> listener.onClick(data) }
                 }
             }
         }

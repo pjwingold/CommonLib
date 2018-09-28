@@ -2,6 +2,9 @@ package au.com.pjwin.commonlib
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
+import android.support.annotation.DrawableRes
 
 class Common {
     companion object {
@@ -9,8 +12,12 @@ class Common {
         lateinit var context: Context
             private set
 
+        @JvmStatic
         lateinit var config: Config
             private set
+
+        @JvmStatic
+        val uiHandler: Handler by lazy(LazyThreadSafetyMode.SYNCHRONIZED) { Handler(Looper.getMainLooper()) }
 
         @JvmStatic
         var isUnitTest: Boolean = false
@@ -42,5 +49,10 @@ class Common {
         fun credentialBase64() = ""
 
         fun acceptHeader() = "application/json"//can set text/xml if need
+
+        fun sourceDateFormat() = "dd-MM-yyyy'T'hh:mm:ss"
+
+        @DrawableRes
+        fun launcherIcon(): Int = 0
     }
 }

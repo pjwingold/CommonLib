@@ -2,22 +2,32 @@ package au.com.pjwin.commonlib.repo.retrofit
 
 import android.annotation.SuppressLint
 import au.com.pjwin.commonlib.Common
+import okhttp3.Cache
 import okhttp3.Dispatcher
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
+import org.simpleframework.xml.core.Persister
+import org.simpleframework.xml.transform.RegistryMatcher
+import org.simpleframework.xml.transform.Transform
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.converter.simplexml.SimpleXmlConverterFactory
+import java.io.File
 import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.*
 import java.util.concurrent.TimeUnit
 
 /**
  * do not use companion object, Robolectric will throw IllegalAccessError
  */
+private const val CACHE_FILE_SIZE: Long = 10 * 1024 * 1024
+private const val CACHE_FILE_NAME = "cache_response"
+
 object RetrofitRepo {
     private val BASE_URL = String.format("%s://%s:%s/%s/",
             Common.config.schema(), Common.config.host(), Common.config.port(), Common.config.contextRoot())
@@ -25,6 +35,7 @@ object RetrofitRepo {
     private val HTTP_LOG_INTERCEPTOR by lazy {
         HttpLoggingInterceptor()
                 .setLevel(if (Common.config.debug()) HttpLoggingInterceptor.Level.BODY else HttpLoggingInterceptor.Level.NONE)
+
     }
 
     private val BASIC_AUTH_INTERCEPTOR by lazy {
@@ -35,12 +46,24 @@ object RetrofitRepo {
         }
     }
 
+    private val CACHING_INTERCEPTOR by lazy {
+        ResponseCachingInterceptor()
+    }
+
+    private val DATE_SERIALIZER by lazy {
+        val matcher = RegistryMatcher()
+        val dateFormat = SimpleDateFormat(Common.config.sourceDateFormat(), Locale.getDefault())
+
+        matcher.bind(Date::class.java, DateTransformer(dateFormat))
+        Persister(matcher)
+    }
+
     @JvmStatic
     val RETROFIT_OPEN_AUTH_XML by lazy {
         Retrofit.Builder()
                 .baseUrl(BASE_URL)
-                .client(httpClient(HTTP_LOG_INTERCEPTOR))
-                .addConverterFactory(SimpleXmlConverterFactory.create())
+                .client(httpClient(HTTP_LOG_INTERCEPTOR, CACHING_INTERCEPTOR))
+                .addConverterFactory(SimpleXmlConverterFactory.create(DATE_SERIALIZER))
                 .build()
     }
 
@@ -68,7 +91,12 @@ object RetrofitRepo {
                 .readTimeout(Common.config.readTimeout(), TimeUnit.SECONDS)
                 .connectTimeout(Common.config.connectionTimeout(), TimeUnit.SECONDS)
 
-        interceptors.forEach { builder.addInterceptor(it) }
+        interceptors.forEach {
+            if (it is ResponseCachingInterceptor) {
+                setupCache(builder)
+            }
+            builder.addInterceptor(it)
+        }
 
         if (Common.isUnitTest) {//makes api unit test runs in the main thread
             builder.dispatcher(Dispatcher(ImmediateExecutor()))
@@ -76,6 +104,11 @@ object RetrofitRepo {
         }
 
         return builder.build()
+    }
+
+    private fun setupCache(builder: OkHttpClient.Builder) {
+        val cacheDir = File(Common.context.cacheDir, CACHE_FILE_NAME)
+        builder.cache(Cache(cacheDir, CACHE_FILE_SIZE))
     }
 
     @Throws(IOException::class)
@@ -142,4 +175,16 @@ object RetrofitRepo {
             }
         })
     }
+
+    private class DateTransformer(private val format: SimpleDateFormat) : Transform<Date> {
+
+        override fun write(value: Date?): String {
+            return format.format(value)
+        }
+
+        override fun read(value: String?): Date {
+            return format.parse(value)
+        }
+    }
 }
+

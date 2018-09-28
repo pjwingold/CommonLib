@@ -47,24 +47,6 @@ abstract class BaseFragment<Data, ChildViewModel : DataViewModel<Data>, Binding 
         return binding.root
     }
 
-    override fun hideLoading() {
-        if (inlineLoading) {
-            baseActivity.loadingInline(false)
-
-        } else {
-            super.hideLoading()
-        }
-    }
-
-    override fun showLoading() {
-        if (inlineLoading) {
-            baseActivity.loadingInline(true)
-
-        } else {
-            super.showLoading()
-        }
-    }
-
     @Suppress("UNCHECKED_CAST")
     fun <T : BaseFragment<*, *, *>> setArguments(vararg values: Serializable): T {
         val bundle = Bundle()
@@ -74,5 +56,26 @@ abstract class BaseFragment<Data, ChildViewModel : DataViewModel<Data>, Binding 
 
         arguments = bundle
         return this as T
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    protected fun <T: Serializable> getArgument(arg: Arg): T? =
+            arguments?.getSerializable(arg.ordinal.toString()) as T
+
+    fun onPrimaryAction() {
+        if (activity is OnActionListener) {
+            (activity as OnActionListener).onPrimaryAction(this)
+        }
+    }
+
+    //have to create functional interface for better interop with java
+    interface OnActionListener {
+        fun onPrimaryAction(fragment: Fragment)
+    }
+
+    fun isRefreshing() = baseActivity.isRefreshing()
+
+    fun setRefreshing(refreshing: Boolean) {
+        baseActivity.setRefreshing(refreshing)
     }
 }

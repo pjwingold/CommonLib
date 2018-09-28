@@ -4,14 +4,14 @@
     <style name="CommonTheme" parent="Theme.AppCompat.Light.DarkActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
-
-        <item name="primaryColor">@color/colorPrimary</item>
     </style>
 
     <style name="CommonTheme.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
     </style>
+
+    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
     <style name="MatchHeightLayout">
         <item name="android:layout_width">wrap_content</item>
@@ -37,9 +37,19 @@
         <item name="android:layout_height">wrap_content</item>
     </style>
 
+    <style name="SectionVertical" parent="SectionLayout">
+        <item name="android:orientation">vertical</item>
+    </style>
+
     <style name="SectionScroll" parent="MatchParentLayout">
         <item name="android:fillViewport">true</item>
         <item name="android:scrollbars">none</item>
+    </style>
+
+    <style name="ContentPadded" parent="SectionVertical">
+        <item name="android:paddingStart">@dimen/content_spacing</item>
+        <item name="android:paddingEnd">@dimen/content_spacing</item>
+        <item name="android:paddingTop">@dimen/content_spacing</item>
     </style>
 
     <style name="ProgressBarInline" parent="@style/Base.Widget.AppCompat.ProgressBar">

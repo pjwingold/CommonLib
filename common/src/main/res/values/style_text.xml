@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Header" parent="WrapContentLayout">
+        <item name="android:paddingBottom">@dimen/content_spacing_small</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="Header.Title">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:gravity">center</item>
+        <item name="android:lines">1</item>
+        <item name="android:displayOptions">showHome|homeAsUp</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:textSize">18sp</item>
+    </style>
+</resources>

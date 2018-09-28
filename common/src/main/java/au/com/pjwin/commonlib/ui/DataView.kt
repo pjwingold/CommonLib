@@ -6,11 +6,14 @@ import android.arch.lifecycle.Observer
 import android.support.annotation.StringRes
 import android.text.InputType
 import android.widget.EditText
+import android.widget.Toast
 import au.com.pjwin.commonlib.R
+import au.com.pjwin.commonlib.util.Util
 import au.com.pjwin.commonlib.viewmodel.DataViewModel
 import java.io.IOException
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
+import java.net.SocketTimeoutException
 
 
 /**
@@ -18,9 +21,13 @@ import java.lang.reflect.Type
  */
 interface DataView<Data> : LifecycleOwner {
 
+    @StringRes
+    fun pageTitle(): Int = R.string.page_title_empty
+
     /**
      * try to work out the actual type of the ViewModel of the current
-     * Activity/Fragment<Data, DataViewModel<Data>, ViewDataBinding>
+     * i.e.
+     * MainActivity/MainFragment<RealData, MainDataViewModel<Data>, MainViewDataBinding>
      */
     fun genericType(classType: Class<*>): Type? {
         var clazz: Class<*> = javaClass
@@ -29,13 +36,14 @@ interface DataView<Data> : LifecycleOwner {
                 clazz = clazz.superclass
             }
 
+            //0 - RealData, 1 - MainDataViewModel, 2 - RealViewDataBinding
             val arguments = (clazz.genericSuperclass as ParameterizedType).actualTypeArguments
 
             val type = arguments.first {
                 it is Class<*> && classType.isAssignableFrom(it)
             }
 
-            if (type != null) {
+            if (type != null) {// ReadDataViewModel
                 return type
             }
             clazz = clazz.superclass
@@ -48,11 +56,9 @@ interface DataView<Data> : LifecycleOwner {
     fun registerObservers(dataViewModel: DataViewModel<Data>) {
         dataViewModel.liveData.observe(this, Observer<Data> { onData(it) })
         dataViewModel.errorData.observe(this, Observer<Throwable> { onError(it) })
-        dataViewModel.loadingData.observe(this, Observer<Boolean> { it ->
-            it?.let {
-                if (it) showLoading()
-                else hideLoading()
-            }
+        dataViewModel.loadingData.observe(this, Observer<Boolean> { loading ->
+            if (loading == true) showLoading()
+            else hideLoading()
         })
     }
 
@@ -71,33 +77,43 @@ interface DataView<Data> : LifecycleOwner {
         }
     }
 
-    fun loadingInline(show: Boolean) {
+    /*fun loadingInline(show: Boolean) {
 
-    }
+    }*/
 
-    //todo add global error handling
     fun onError(throwable: Throwable?) {
         when (throwable) {
-            is IOException -> onNetworkError()
+            is IOException -> onNetworkError(throwable)
 
             else -> onRestError()
         }
     }
 
     fun showLoading() {
-        //todo non inline progress dialog
+        val activity: BaseActivity<*, *, *> = getBaseActivity()
+        activity.showLoading()
     }
 
     fun hideLoading() {
-
+        val activity: BaseActivity<*, *, *> = getBaseActivity()
+        activity.hideLoading()
     }
 
-    fun onNetworkError() {
+    fun onNetworkError(exception: IOException) {
+        if (exception is SocketTimeoutException) {//todo display proper error message
+            Toast.makeText(Util.context(), "Connection timeout", Toast.LENGTH_SHORT).show()
 
+        } else {
+            Toast.makeText(Util.context(), "No internet connection", Toast.LENGTH_SHORT).show()
+        }
     }
 
     fun onRestError() {
+        Toast.makeText(Util.context(), "Unable to load content", Toast.LENGTH_SHORT).show()
+    }
 
+    fun showError() {
+        //todo display proper error message
     }
 
     fun showBasicInputDialog(@StringRes titleId: Int, okAction: (String) -> Unit, cancelAction: (() -> Unit)? = null) {

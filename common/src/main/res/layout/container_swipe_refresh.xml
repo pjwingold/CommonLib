@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <LinearLayout
+        android:id="@+id/page_container"
+        style="@style/PageContainer"
+        android:fitsSystemWindows="true"><!-- fitsSystemWindows properly calculate activity height -->
+
+        <include layout="@layout/toolbar" />
+
+        <android.support.constraint.ConstraintLayout style="@style/MatchParentLayout">
+
+            <ProgressBar
+                android:id="@+id/progress_inline"
+                style="@style/ProgressBarInline"
+                android:visibility="gone"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <android.support.v4.widget.SwipeRefreshLayout
+                android:id="@+id/swipe_refresh_layout"
+                style="@style/MatchParentLayout">
+
+                <FrameLayout
+                    android:id="@+id/frame_layout"
+                    style="@style/MatchParentLayout" />
+            </android.support.v4.widget.SwipeRefreshLayout>
+
+        </android.support.constraint.ConstraintLayout>
+
+    </LinearLayout>
+</layout>

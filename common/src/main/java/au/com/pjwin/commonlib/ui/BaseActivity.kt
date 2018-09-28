@@ -7,17 +7,22 @@ import android.databinding.ViewDataBinding
 import android.os.Bundle
 import android.support.annotation.IdRes
 import android.support.annotation.LayoutRes
+import android.support.annotation.StringRes
 import android.support.v4.app.Fragment
+import android.support.v4.widget.SwipeRefreshLayout
 import android.support.v7.app.AppCompatActivity
+import android.support.v7.widget.Toolbar
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.ProgressBar
+import android.widget.TextView
 import au.com.pjwin.commonlib.R
 import au.com.pjwin.commonlib.viewmodel.DataViewModel
 import au.com.pjwin.commonlib.viewmodel.VoidViewModel
+import java.io.Serializable
 
 abstract class BaseActivity<Data, ChildViewModel : DataViewModel<Data>, Binding : ViewDataBinding>
-    : AppCompatActivity(), DataView<Data> {
+    : AppCompatActivity(), DataView<Data>, BaseFragment.OnActionListener {
 
     protected val TAG: String = javaClass.name
 
@@ -31,7 +36,22 @@ abstract class BaseActivity<Data, ChildViewModel : DataViewModel<Data>, Binding 
 
     protected lateinit var frameLayout: FrameLayout
 
-    protected var inlineLoading = true
+    //protected var inlineLoading = true
+
+    protected var swipeRefreshLayout: SwipeRefreshLayout? = null
+
+    private val extras: Bundle
+        get() {
+            var args = intent.extras
+            if (args == null) {
+                args = Bundle()
+            }
+            return args
+        }
+
+    @Suppress("UNCHECKED_CAST")
+    protected fun <T: Serializable> getExtra(arg: Arg): T =
+            extras.getSerializable(arg.name) as T
 
     @LayoutRes
     protected abstract fun layoutId(): Int
@@ -41,6 +61,18 @@ abstract class BaseActivity<Data, ChildViewModel : DataViewModel<Data>, Binding 
 
         bindRoot()
         setupViewModel()
+        initToolbar()
+    }
+
+    override fun onStart() {
+        super.onStart()
+
+        val actionBar = supportActionBar
+        actionBar?.apply {
+            setDisplayShowTitleEnabled(false)
+            setDisplayHomeAsUpEnabled(!isParentActivity())
+            setDisplayShowHomeEnabled(!isParentActivity())
+        }
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -57,17 +89,17 @@ abstract class BaseActivity<Data, ChildViewModel : DataViewModel<Data>, Binding 
         }
     }
 
-    override fun loadingInline(show: Boolean) {
-        progressInline.visibility = if (show) View.VISIBLE else View.GONE
-    }
-
-    override fun hideLoading() {
-        super.hideLoading()
-        frameLayout.visibility = View.VISIBLE
-    }
-
     protected fun bindRoot() {
-        setContentView(R.layout.container_base)
+        if (this is SwipeRefreshActivity) {
+            binding = DataBindingUtil.setContentView(this, R.layout.container_swipe_refresh)
+            swipeRefreshLayout = findViewById(R.id.swipe_refresh_layout)
+
+            initSwipeRefresh()
+
+        } else {
+            setContentView(R.layout.container_base)
+        }
+
         rootView = findViewById(R.id.page_container)
         frameLayout = findViewById(R.id.frame_layout)
         progressInline = findViewById(R.id.progress_inline)
@@ -76,6 +108,29 @@ abstract class BaseActivity<Data, ChildViewModel : DataViewModel<Data>, Binding 
             binding = DataBindingUtil.inflate(layoutInflater, layoutId(), frameLayout, true)
         }
     }
+
+    private fun initToolbar() {
+        val toolBar = findViewById<Toolbar>(R.id.toolbar)
+        toolBar?.let {
+            setSupportActionBar(it)
+            initPageTitle(pageTitle())
+        }
+    }
+
+    protected fun initPageTitle(@StringRes title: Int) {
+        when (title) {
+            R.string.page_title_empty -> {
+                //todo hide toolbar
+            }
+            else -> {
+                findViewById<TextView>(R.id.title).setText(title)
+            }
+        }
+    }
+
+/*    override fun loadingInline(show: Boolean) {
+        progressInline.visibility = if (show) View.VISIBLE else View.GONE
+    }*/
 
     protected fun showFragment(fragment: Fragment) {
         showFragment(R.id.frame_layout, fragment)
@@ -103,7 +158,7 @@ abstract class BaseActivity<Data, ChildViewModel : DataViewModel<Data>, Binding 
         fragmentTransaction.replace(container, fragment, fragment.javaClass.name)
 
         val existing = getExistingFragment<Fragment>(container)
-        if (existing != null) {
+        if (existing != null) {//todo add checks to skip adding to backstack
             fragmentTransaction.addToBackStack(existing.javaClass.name)
         }
 
@@ -130,7 +185,35 @@ abstract class BaseActivity<Data, ChildViewModel : DataViewModel<Data>, Binding 
         return getExistingFragment(R.id.frame_layout)
     }
 
+    @Suppress("UNCHECKED_CAST")
     protected fun <T : Fragment> getExistingFragment(@IdRes id: Int): T? {
         return supportFragmentManager.findFragmentById(id) as T
+    }
+
+    override fun onPrimaryAction(fragment: Fragment) {
+    }
+
+    private fun isParentActivity() = supportParentActivityIntent == null
+
+    private fun initSwipeRefresh() {
+        swipeRefreshLayout?.setOnRefreshListener { performRefresh(true) }
+    }
+
+    open fun performRefresh(force: Boolean) {
+
+    }
+
+    fun isRefreshing() = swipeRefreshLayout?.isRefreshing ?: false
+
+    fun setRefreshing(refreshing: Boolean) {
+        swipeRefreshLayout?.isRefreshing = refreshing
+    }
+
+    override fun showLoading() {
+        progressInline.visibility = View.VISIBLE
+    }
+
+    override fun hideLoading() {
+        progressInline.visibility = View.GONE
     }
 }
