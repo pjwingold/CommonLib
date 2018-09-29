@@ -17,4 +17,5 @@ The app module can decide which to use
 also supports some common:
 
 stlyes,
-dimens
+dimens,
+theme
