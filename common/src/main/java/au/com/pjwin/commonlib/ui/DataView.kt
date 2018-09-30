@@ -18,6 +18,7 @@ import java.net.SocketTimeoutException
 
 /**
  * share between activity/fragment
+ * only LifecycleOwner can observe LiveData
  */
 interface DataView<Data> : LifecycleOwner {
 

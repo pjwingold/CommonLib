@@ -160,12 +160,11 @@ object RetrofitRepo {
         call.enqueue(object : Callback<T> {
             override fun onResponse(call: Call<T>, response: Response<T>) {
                 if (response.isSuccessful) {
-                    //todo handle caching and stale
                     feedback.success(response.body())
                     feedback.received(true)
 
                 } else {
-                    //todo error handling
+                    handleRestError(response, feedback)
                 }
             }
 
@@ -174,6 +173,14 @@ object RetrofitRepo {
                 feedback.received(false)
             }
         })
+    }
+
+    //todo create proper exception handling
+    private fun <T> handleRestError(response: Response<*>, feedback: Feedback<T>) {
+        val exception = Exception(response.errorBody()?.string())
+
+        feedback.error(exception)
+        feedback.received(false)
     }
 
     private class DateTransformer(private val format: SimpleDateFormat) : Transform<Date> {
