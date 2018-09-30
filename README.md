@@ -7,13 +7,15 @@ ie
 
 It supports the following types of repository:
 
-MBaaS ie Firebase, Kumulos etc
+MBaaS (Mobile backend as service)
+ie Firebase, Kumulos etc
 
-Retrofit
+Retrofit (Standard network lib)
 
 The app module can decide which to use
 
 also supports some common:
 
-stlyes
-dimens
+stlyes,
+dimens,
+theme
