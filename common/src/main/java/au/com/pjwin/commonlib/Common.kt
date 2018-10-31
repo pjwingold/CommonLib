@@ -17,7 +17,7 @@ class Common {
             private set
 
         @JvmStatic
-        val uiHandler: Handler by lazy(LazyThreadSafetyMode.SYNCHRONIZED) { Handler(Looper.getMainLooper()) }
+        val uiHandler: Handler by lazy { Handler(Looper.getMainLooper()) }
 
         @JvmStatic
         var isUnitTest: Boolean = false

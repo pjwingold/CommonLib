@@ -17,6 +17,7 @@ import android.widget.FrameLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import au.com.pjwin.commonlib.R
+import au.com.pjwin.commonlib.util.Util
 import au.com.pjwin.commonlib.viewmodel.DataViewModel
 import au.com.pjwin.commonlib.viewmodel.VoidViewModel
 import java.io.Serializable
@@ -117,15 +118,19 @@ abstract class BaseActivity<Data, ChildViewModel : DataViewModel<Data>, Binding 
         }
     }
 
-    protected fun initPageTitle(@StringRes title: Int) {
+    fun initPageTitle(@StringRes title: Int) {
         when (title) {
             R.string.page_title_empty -> {
                 //todo hide toolbar
             }
             else -> {
-                findViewById<TextView>(R.id.title).setText(title)
+                initPageTitle(Util.string(title))
             }
         }
+    }
+
+    fun initPageTitle(title: String) {
+        findViewById<TextView>(R.id.title).text = title
     }
 
 /*    override fun loadingInline(show: Boolean) {
@@ -215,5 +220,8 @@ abstract class BaseActivity<Data, ChildViewModel : DataViewModel<Data>, Binding 
 
     override fun hideLoading() {
         progressInline.visibility = View.GONE
+        if (this is SwipeRefreshActivity) {
+            setRefreshing(false)
+        }
     }
 }

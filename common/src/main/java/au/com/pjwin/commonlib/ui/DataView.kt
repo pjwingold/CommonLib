@@ -100,6 +100,16 @@ interface DataView<Data> : LifecycleOwner {
         activity.hideLoading()
     }
 
+    fun setPageTitle(@StringRes title: Int) {
+        val activity: BaseActivity<*, *, *> = getBaseActivity()
+        activity.initPageTitle(title)
+    }
+
+    fun setPageTitle(title: String) {
+        val activity: BaseActivity<*, *, *> = getBaseActivity()
+        activity.initPageTitle(title)
+    }
+
     fun onNetworkError(exception: IOException) {
         if (exception is SocketTimeoutException) {//todo display proper error message
             Toast.makeText(Util.context(), "Connection timeout", Toast.LENGTH_SHORT).show()

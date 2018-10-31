@@ -14,6 +14,7 @@ class ResponseCachingInterceptor: Interceptor {
         val headers = request.headers()
         val response: Response
 
+        //todo cache framework
         response = if (isCacheRequired(headers)) {
             val newRequest = request.newBuilder()
 
