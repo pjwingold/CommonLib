@@ -10,12 +10,15 @@ It supports the following types of repository:
 MBaaS (Mobile backend as service)
 ie Firebase, Kumulos etc
 
-Retrofit (Standard network lib)
+Retrofit
 
 The app module can decide which to use
 
-also supports some common:
+also contains some common:
 
 stlyes,
 dimens,
 theme
+
+The app module can decide whether to use traditonal Retrofit callbacks 
+or Coroutine for making network calls
