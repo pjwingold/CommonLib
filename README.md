@@ -1,8 +1,8 @@
 A common library for supporting a MVVM architecture 
 
-Make sure it is at the same directory as the App module
-ie 
-/home/user/YourApp
+Make sure it is checked out at the same directory as the App module<br />
+ie<br />
+/home/user/YourApp<br />
 /home/user/CommonLib
 
 It supports the following types of repository:
@@ -20,5 +20,5 @@ stlyes,
 dimens,
 theme
 
-The app module can decide whether to use traditonal Retrofit callbacks 
+The app module can decide whether to use traditonal Retrofit callbacks <br />
 or Coroutine for making network calls
