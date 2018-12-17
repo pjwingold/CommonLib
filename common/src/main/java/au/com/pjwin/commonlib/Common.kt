@@ -24,6 +24,11 @@ class Common {
             private set
 
         @JvmStatic
+        fun init(context: Context, config: Config) {
+            init(context, config, false)
+        }
+
+        @JvmStatic
         fun init(context: Context, config: Config, isUnitTest: Boolean) {
             this.context = context
             this.config = config

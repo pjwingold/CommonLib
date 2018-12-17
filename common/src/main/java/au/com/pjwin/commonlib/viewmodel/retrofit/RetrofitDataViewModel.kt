@@ -18,19 +18,22 @@ open class RetrofitDataViewModel<Data> : DataViewModel<Data>() {
         return enqueue(call, success, { onError(it) }, {}, interactive)
     }
 
-    protected fun <Model> enqueue(call: Call<Model>,
-                                  success: (Model?) -> Unit,
-                                  error: (Throwable?) -> Unit,
-                                  received: (Boolean) -> Unit,
-                                  interactive: Boolean): Call<Model> {
+    protected fun <Model> enqueue(
+        call: Call<Model>,
+        success: (Model?) -> Unit,
+        error: (Throwable?) -> Unit,
+        received: (Boolean) -> Unit,
+        interactive: Boolean
+    ): Call<Model> {
         if (interactive) {
             showLoading()
         }
 
-        RetrofitRepo.enqueue(call,
-                { data -> callback(success, data, interactive) },
-                { throwable -> callback(error, throwable, interactive) },
-                received
+        RetrofitRepo.enqueue(
+            call,
+            { data -> callback(success, data, interactive) },
+            { throwable -> callback(error, throwable, interactive) },
+            received
         )
 
         return call

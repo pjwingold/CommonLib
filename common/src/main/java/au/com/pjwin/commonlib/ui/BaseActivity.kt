@@ -215,7 +215,9 @@ abstract class BaseActivity<Data, ChildViewModel : DataViewModel<Data>, Binding 
     }
 
     override fun showLoading() {
-        progressInline.visibility = View.VISIBLE
+        if (!isRefreshing()) {
+            progressInline.visibility = View.VISIBLE
+        }
     }
 
     override fun hideLoading() {
