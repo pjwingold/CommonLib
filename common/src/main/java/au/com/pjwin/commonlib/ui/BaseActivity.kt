@@ -27,6 +27,8 @@ abstract class BaseActivity<Data, ChildViewModel : DataViewModel<Data>, Binding 
 
     protected val TAG: String = javaClass.name
 
+    protected lateinit var fragmentDispatcher: FragmentDispatcher
+
     private lateinit var progressInline: ProgressBar
 
     protected lateinit var viewModel: ChildViewModel
@@ -51,8 +53,8 @@ abstract class BaseActivity<Data, ChildViewModel : DataViewModel<Data>, Binding 
         }
 
     @Suppress("UNCHECKED_CAST")
-    protected fun <T: Serializable> getExtra(arg: Arg): T =
-            extras.getSerializable(arg.name) as T
+    protected fun <T : Serializable> getExtra(arg: Arg): T =
+        extras.getSerializable(arg.name) as T
 
     @LayoutRes
     protected abstract fun layoutId(): Int
@@ -60,6 +62,8 @@ abstract class BaseActivity<Data, ChildViewModel : DataViewModel<Data>, Binding 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        fragmentDispatcher = FragmentDispatcher(this)
+        lifecycle.addObserver(fragmentDispatcher)
         bindRoot()
         setupViewModel()
         initToolbar()
@@ -142,48 +146,11 @@ abstract class BaseActivity<Data, ChildViewModel : DataViewModel<Data>, Binding 
     }
 
     protected fun showFragment(@IdRes container: Int, fragment: Fragment) {
-        showFragment(container, fragment, false, true)
+        showFragment(container, fragment, true)
     }
 
-    protected fun showFragment(@IdRes container: Int, fragment: Fragment, allowStateLoss: Boolean, animate: Boolean) {
-        if (supportFragmentManager.findFragmentById(container) == null) {
-            addFragment(container, fragment, allowStateLoss)
-
-        } else {
-            replaceFragment(container, fragment, allowStateLoss, animate)
-        }
-    }
-
-    private fun replaceFragment(@IdRes container: Int, fragment: Fragment, allowStateLoss: Boolean, animate: Boolean) {
-        val fragmentTransaction = supportFragmentManager.beginTransaction()
-        //Custom animations MUST be set before .replace() is called or they will fail.
-        if (animate) {
-            //todo setCustomAnimations(fragmentTransaction)
-        }
-        fragmentTransaction.replace(container, fragment, fragment.javaClass.name)
-
-        val existing = getExistingFragment<Fragment>(container)
-        if (existing != null) {//todo add checks to skip adding to backstack
-            fragmentTransaction.addToBackStack(existing.javaClass.name)
-        }
-
-        if (allowStateLoss) {
-            fragmentTransaction.commitAllowingStateLoss()
-
-        } else {
-            fragmentTransaction.commit()
-        }
-    }
-
-    private fun addFragment(@IdRes container: Int, fragment: Fragment, allowStateLoss: Boolean) {
-        val fragmentTransaction = supportFragmentManager.beginTransaction()
-                .add(container, fragment, fragment.javaClass.name)
-        if (allowStateLoss) {
-            fragmentTransaction.commitAllowingStateLoss()
-
-        } else {
-            fragmentTransaction.commit()
-        }
+    protected fun showFragment(@IdRes container: Int, fragment: Fragment, animate: Boolean) {
+        fragmentDispatcher.dispatcherFragment(container, fragment, animate)
     }
 
     protected fun <T : Fragment> getExistingFragment(): T? {
@@ -192,9 +159,10 @@ abstract class BaseActivity<Data, ChildViewModel : DataViewModel<Data>, Binding 
 
     @Suppress("UNCHECKED_CAST")
     protected fun <T : Fragment> getExistingFragment(@IdRes id: Int): T? {
-        return supportFragmentManager.findFragmentById(id) as T
+        return fragmentDispatcher.getExistingFragment(id)
     }
 
+    //hook
     override fun onPrimaryAction(fragment: Fragment) {
     }
 
@@ -204,8 +172,8 @@ abstract class BaseActivity<Data, ChildViewModel : DataViewModel<Data>, Binding 
         swipeRefreshLayout?.setOnRefreshListener { performRefresh(true) }
     }
 
+    //hook
     open fun performRefresh(force: Boolean) {
-
     }
 
     fun isRefreshing() = swipeRefreshLayout?.isRefreshing ?: false
