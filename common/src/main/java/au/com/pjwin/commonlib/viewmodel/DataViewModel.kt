@@ -6,6 +6,7 @@ import au.com.pjwin.commonlib.Common
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
@@ -19,7 +20,7 @@ abstract class DataViewModel<Data> : ViewModel(), CoroutineScope {
     protected var viewModelJob: Job = Job()
 
     override val coroutineContext: CoroutineContext
-        get() = Dispatchers.Main + viewModelJob //response dispatch to both main and job thread
+        get() = if (!Common.isUnitTest) Dispatchers.IO else Dispatchers.Main + viewModelJob //response dispatch to both main and job thread
 
     internal val liveData = MutableLiveData<Data>()
     internal val errorData = MutableLiveData<Throwable>()
@@ -72,71 +73,103 @@ abstract class DataViewModel<Data> : ViewModel(), CoroutineScope {
     }
 
     /**
-     * launch coroutine on IO thread pool
+     * Launch a coroutine on IO thread pool，
+     * create a new job if the old one is cancelled
      */
-    protected fun launchIO(block: suspend () -> Unit): Job {
+    protected fun launchJob(block: suspend () -> Unit): Job {
         //must create a new job after previous is cancelled, job.start() has no effect on cancelled
         if (viewModelJob.isCancelled) {
             viewModelJob = Job()
         }
 
-        return launch(if (!Common.isUnitTest) Dispatchers.IO else Dispatchers.Main) {
-            block()
-        }
-    }
-
-    protected suspend fun <T : Any> execute(
-            block: suspend () -> T,
-            success: ((T) -> Unit)?
-    ) {
-        execute(block, success, true)
-    }
-
-    protected suspend fun <T : Any> execute(
-            block: suspend () -> T,
-            success: ((T) -> Unit)?,
-            interactive: Boolean
-    ) {
-        execute(block, success, { onError(it) }, interactive)
+        return launch { block() }
     }
 
     /**
-     * execute a coroutine with exception handling
+     * Execute a suspend function that returns a value and with exception handling
+     * It suspends execution until it is completed or failed
      *
      * ie. fun getData() {
-     *          val combinedResult = CombinedResult()
-     *          launch {
-     *              execute(suspend1().await(), { combinedResult.data1 = it }, { handleError(it) })
-     *              execute(suspend2().await(), { combinedResult.data2 = it })
-     *              ...
+     *          launchJob {
+     *              val status = executeAwait({ checkStatus().await() }, { onError(...) })
+     *              //wait for status to load
+     *              if (job.isActive) {
+     *                  if (status != null && status.success) {
+     *                      doMoreWork(...)
      *
-     *              onData(combinedResult)
+     *                  } else {
+     *                      onError(...)
+     *                  }
+     *              }
      *          }
      *     }
      * @param block coroutine code to be executed
-     * @param success what to do after successful coroutine execution
      * @param error what to do in case of error
      * @param interactive whether to show progress dialog
      */
-    protected suspend fun <T : Any> execute(
-            block: suspend () -> T,
-            success: ((T) -> Unit)?,
-            error: ((Throwable) -> Unit)?,
-            interactive: Boolean
-    ) {
+    protected suspend fun <T : Any> executeAwait(
+        block: suspend () -> T,
+        error: ((Throwable) -> Unit)? = null,
+        interactive: Boolean = false
+    ): T? {
         if (interactive) {
             showLoading()
         }
 
         if (isActive) {//job not cancelled
             try {
-                val result = block()
-                success?.invoke(result)
+                return block()
 
             } catch (e: Throwable) {
                 error?.invoke(e)
                 viewModelJob.cancel()
             }
         }
+        return null
     }
+
+    /**
+     * Launch a coroutine with exception handling
+     * Use for parallel requests
+     *
+     * ie. fun getData() {
+     *          val combinedResult = CombinedResult()
+     *          launchJob {
+     *              val job1 = execute(deferred1, { combinedResult.data1 = it }, { onError(it) })
+     *              val job2 = execute(deferred2, { combinedResult.data2 = it })
+     *              ...
+     *
+     *              awaitAll(job1, job2...)
+     *
+     *              if (job.isActive) {
+     *                  onData(combinedResult)
+     *              }
+     *          }
+     *     }
+     */
+    protected fun <T : Any> execute(
+        block: suspend () -> T,
+        success: ((T) -> Unit)?,
+        error: ((Throwable) -> Unit)? = null,
+        interactive: Boolean = false
+    ) =
+
+        async {
+            if (viewModelJob.isActive) {
+                //Log.d(TAG, "execute $block $coroutineContext" + Thread.currentThread())
+                if (interactive) {
+                    showLoading()
+                }
+
+                try {
+                    val result = block()
+                    success?.invoke(result)
+                    //Log.d(TAG, "success $block $coroutineContext ${this.coroutineContext}" + Thread.currentThread())
+
+                } catch (e: Throwable) {
+                    error?.invoke(e)
+                    viewModelJob.cancel()
+                }
+            }
+        }
 }
