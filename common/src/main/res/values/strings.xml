@@ -4,5 +4,7 @@
     <string name="button_ok">OK</string>
     <string name="button_cancel">Cancel</string>
 
+    <string name="progress_loading">Loading…</string>
+
     <string name="page_title_empty" />
 </resources>
