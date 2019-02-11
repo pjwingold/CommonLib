@@ -71,4 +71,10 @@
         <item name="android:layout_marginTop">@dimen/content_spacing_small</item>
         <item name="android:textSize">@dimen/text_size_body</item>
     </style>
+
+    <style name="SectionSeparator" parent="SectionLayout">
+        <item name="android:background">@color/separator_color</item>
+        <item name="android:layout_height">@dimen/separator_height</item>
+        <item name="android:layout_marginBottom">@dimen/content_spacing</item>
+    </style>
 </resources>

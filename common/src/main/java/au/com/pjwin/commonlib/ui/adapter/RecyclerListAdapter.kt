@@ -58,7 +58,7 @@ abstract class RecyclerListAdapter<Data, Binding : ViewDataBinding, ViewHolder :
                 bindData(bind, data)
 
                 onClickListener?.let { listener ->
-                    binding.root.setOnClickListener { _ -> listener.onClick(data) }
+                    binding.root.setOnClickListener { listener.onClick(data) }
                 }
             }
         }

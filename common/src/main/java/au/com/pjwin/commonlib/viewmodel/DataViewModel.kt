@@ -27,11 +27,13 @@ abstract class DataViewModel<Data> : ViewModel(), CoroutineScope {
     internal val loadingData = MutableLiveData<Boolean>()
     internal val completeData = MutableLiveData<Boolean>()
 
+    //post result to UI
     open fun onData(data: Data?) {
         hideLoading()
         liveData.postValue(data)
     }
 
+    //post error to UI
     open fun onError(throwable: Throwable?) {
         hideLoading()
         errorData.postValue(throwable)

@@ -6,6 +6,10 @@
         <item name="android:textStyle">bold</item>
     </style>
 
+    <style name="Header.H1">
+        <item name="android:textSize">@dimen/header1_text</item>
+    </style>
+
     <style name="Header.Title">
         <item name="android:layout_width">match_parent</item>
         <item name="android:gravity">center</item>
@@ -13,5 +17,22 @@
         <item name="android:displayOptions">showHome|homeAsUp</item>
         <item name="android:textColor">@android:color/white</item>
         <item name="android:textSize">18sp</item>
+    </style>
+
+    <style name="Text" parent="WrapContentLayout">
+        <item name="android:lineSpacingExtra">@dimen/line_spacing_extra</item>
+    </style>
+
+    <style name="Text.Body">
+        <item name="android:paddingBottom">@dimen/content_spacing</item>
+        <item name="android:textSize">@dimen/text_size_body</item>
+    </style>
+
+    <style name="TextAppearance">
+        <item name="android:textColor">@color/text_primary_color</item>
+    </style>
+
+    <style name="TextAppearance.Bold">
+        <item name="android:textStyle">bold</item>
     </style>
 </resources>
