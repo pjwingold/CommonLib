@@ -77,4 +77,5 @@
         <item name="android:layout_height">@dimen/separator_height</item>
         <item name="android:layout_marginBottom">@dimen/content_spacing</item>
     </style>
+
 </resources>

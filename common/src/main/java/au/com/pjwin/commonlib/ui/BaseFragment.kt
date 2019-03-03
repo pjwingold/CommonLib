@@ -42,6 +42,11 @@ abstract class BaseFragment<Data, ChildViewModel : DataViewModel<Data>, Binding 
         setupViewModel()
     }
 
+    override fun onResume() {
+        super.onResume()
+        initPageTitle()
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         binding = DataBindingUtil.inflate(inflater, layoutId(), container, false)
         return binding.root
@@ -60,7 +65,7 @@ abstract class BaseFragment<Data, ChildViewModel : DataViewModel<Data>, Binding 
 
     @Suppress("UNCHECKED_CAST")
     protected fun <T: Serializable> getArgument(arg: Arg): T? =
-            arguments?.getSerializable(arg.ordinal.toString()) as T
+            arguments?.getSerializable(arg.ordinal.toString()) as T?
 
     fun onPrimaryAction() {
         if (activity is OnActionListener) {

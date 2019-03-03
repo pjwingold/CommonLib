@@ -54,7 +54,7 @@ abstract class BaseActivity<Data, ChildViewModel : DataViewModel<Data>, Binding 
 
     @Suppress("UNCHECKED_CAST")
     protected fun <T : Serializable> getExtra(arg: Arg): T =
-        extras.getSerializable(arg.name) as T
+            extras.getSerializable(arg.name) as T
 
     @LayoutRes
     protected abstract fun layoutId(): Int

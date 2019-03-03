@@ -19,7 +19,7 @@ abstract class RecyclerListAdapter<Data, Binding : ViewDataBinding, ViewHolder :
             notifyDataSetChanged()
         }
 
-    private lateinit var layoutInflater: LayoutInflater
+    protected lateinit var layoutInflater: LayoutInflater
 
     private var onClickListener: ListClickListener<Data>? = null
 

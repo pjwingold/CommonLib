@@ -100,6 +100,11 @@ interface DataView<Data> : LifecycleOwner {
         activity.hideLoading()
     }
 
+    fun initPageTitle() {
+        val activity: BaseActivity<*, *, *> = getBaseActivity()
+        activity.setPageTitle(pageTitle())
+    }
+
     fun setPageTitle(@StringRes title: Int) {
         val activity: BaseActivity<*, *, *> = getBaseActivity()
         activity.initPageTitle(title)
