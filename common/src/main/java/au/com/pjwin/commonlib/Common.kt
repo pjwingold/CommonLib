@@ -53,6 +53,8 @@ class Common {
 
         fun credentialBase64() = ""
 
+        fun authorisation() = "Basic"
+
         fun acceptHeader() = "application/json"//can set text/xml if need
 
         fun sourceDateFormat() = "dd-MM-yyyy'T'hh:mm:ss"

@@ -16,6 +16,11 @@ import android.view.View
 import android.widget.FrameLayout
 import android.widget.ProgressBar
 import android.widget.TextView
+import androidx.navigation.findNavController
+import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.ui.AppBarConfiguration
+import androidx.navigation.ui.navigateUp
+import androidx.navigation.ui.setupActionBarWithNavController
 import au.com.pjwin.commonlib.R
 import au.com.pjwin.commonlib.util.Util
 import au.com.pjwin.commonlib.viewmodel.DataViewModel
@@ -43,6 +48,10 @@ abstract class BaseActivity<Data, ChildViewModel : DataViewModel<Data>, Binding 
 
     protected var swipeRefreshLayout: SwipeRefreshLayout? = null
 
+    private lateinit var appBarConfiguration: AppBarConfiguration
+
+    private lateinit var hostFragment: NavHostFragment
+
     private val extras: Bundle
         get() {
             var args = intent.extras
@@ -59,6 +68,8 @@ abstract class BaseActivity<Data, ChildViewModel : DataViewModel<Data>, Binding 
     @LayoutRes
     protected abstract fun layoutId(): Int
 
+    override fun rootView() = rootView
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -67,6 +78,7 @@ abstract class BaseActivity<Data, ChildViewModel : DataViewModel<Data>, Binding 
         bindRoot()
         setupViewModel()
         initToolbar()
+        setupNavigation()
     }
 
     override fun onStart() {
@@ -93,6 +105,18 @@ abstract class BaseActivity<Data, ChildViewModel : DataViewModel<Data>, Binding 
             frameLayout.visibility = View.VISIBLE
         }
     }
+
+    private fun setupNavigation() {
+        hostFragment = getExistingFragment(R.id.nav_host_fragment)
+                ?: return
+
+        val navController = hostFragment.navController
+        appBarConfiguration = AppBarConfiguration(navController.graph)
+        setupActionBarWithNavController(navController, appBarConfiguration)
+    }
+
+    override fun onSupportNavigateUp() =
+            findNavController(R.id.nav_host_fragment).navigateUp(appBarConfiguration)
 
     protected fun bindRoot() {
         if (this is SwipeRefreshActivity) {
@@ -162,6 +186,10 @@ abstract class BaseActivity<Data, ChildViewModel : DataViewModel<Data>, Binding 
         return fragmentDispatcher.getExistingFragment(id)
     }
 
+    protected fun <T : Fragment> getCurrentFragmentNav(): T? {
+        return hostFragment.childFragmentManager.primaryNavigationFragment as T?
+    }
+
     //hook
     override fun onPrimaryAction(fragment: Fragment) {
     }
@@ -180,6 +208,10 @@ abstract class BaseActivity<Data, ChildViewModel : DataViewModel<Data>, Binding 
 
     fun setRefreshing(refreshing: Boolean) {
         swipeRefreshLayout?.isRefreshing = refreshing
+    }
+
+    fun enableRefreshing(enabled: Boolean) {
+        swipeRefreshLayout?.isEnabled = enabled
     }
 
     override fun showLoading() {

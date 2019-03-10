@@ -17,6 +17,8 @@ import java.io.Serializable
 abstract class BaseFragment<Data, ChildViewModel : DataViewModel<Data>, Binding : ViewDataBinding> :
         Fragment(), DataView<Data> {
 
+    protected val TAG: String = javaClass.name
+
     protected lateinit var viewModel: ChildViewModel
 
     protected lateinit var binding: Binding
@@ -26,15 +28,31 @@ abstract class BaseFragment<Data, ChildViewModel : DataViewModel<Data>, Binding 
     @LayoutRes
     protected abstract fun layoutId(): Int
 
+    override fun rootView() = view
+
     @Suppress("UNCHECKED_CAST")
     protected fun getViewModelClass(): Class<ChildViewModel> {
         return genericType(ViewModel::class.java) as Class<ChildViewModel>
     }
 
+    @Throws(IllegalStateException::class)
     protected fun setupViewModel() {
-        viewModel = ViewModelProviders.of(this).get(getViewModelClass())
+        viewModel = if (isFragmentObserver()) {
+            ViewModelProviders.of(this).get(getViewModelClass())
+
+        } else {
+            activity?.run {
+                ViewModelProviders.of(this).get(getViewModelClass())
+            } ?: throw IllegalStateException()
+        }
         registerObservers(viewModel)
     }
+
+    /**
+     * fragment as the default observer
+     * false if want to use activity as the observer to share the viewmodel between fragments
+     */
+    protected open fun isFragmentObserver() = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,7 +82,7 @@ abstract class BaseFragment<Data, ChildViewModel : DataViewModel<Data>, Binding 
     }
 
     @Suppress("UNCHECKED_CAST")
-    protected fun <T: Serializable> getArgument(arg: Arg): T? =
+    protected fun <T : Serializable> getArgument(arg: Arg): T? =
             arguments?.getSerializable(arg.ordinal.toString()) as T?
 
     fun onPrimaryAction() {

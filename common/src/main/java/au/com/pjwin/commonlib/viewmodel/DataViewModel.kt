@@ -3,12 +3,7 @@ package au.com.pjwin.commonlib.viewmodel
 import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.ViewModel
 import au.com.pjwin.commonlib.Common
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import kotlin.coroutines.CoroutineContext
 
 /**
@@ -17,7 +12,7 @@ import kotlin.coroutines.CoroutineContext
 
 abstract class DataViewModel<Data> : ViewModel(), CoroutineScope {
 
-    protected var viewModelJob: Job = Job()
+    protected var viewModelJob: Job = SupervisorJob()
 
     override val coroutineContext: CoroutineContext
         get() = if (!Common.isUnitTest) Dispatchers.IO else Dispatchers.Main + viewModelJob //response dispatch to both main and job thread
@@ -27,27 +22,40 @@ abstract class DataViewModel<Data> : ViewModel(), CoroutineScope {
     internal val loadingData = MutableLiveData<Boolean>()
     internal val completeData = MutableLiveData<Boolean>()
 
-    //post result to UI
+    /**
+     * post result to UI
+     */
     open fun onData(data: Data?) {
         hideLoading()
         liveData.postValue(data)
     }
 
-    //post error to UI
+    /**
+     * post error to UI
+     */
     open fun onError(throwable: Throwable?) {
         hideLoading()
         errorData.postValue(throwable)
     }
 
+    /**
+     * post complete status to UI
+     */
     open fun onComplete(success: Boolean) {
         hideLoading()
         completeData.postValue(success)
     }
 
+    /**
+     * tells UI to stop any loading indicator
+     */
     open fun hideLoading() {
         loadingData.postValue(false)
     }
 
+    /**
+     * tells UI to start any loading indicator
+     */
     open fun showLoading() {
         loadingData.postValue(true)
     }
@@ -120,9 +128,14 @@ abstract class DataViewModel<Data> : ViewModel(), CoroutineScope {
 
         if (isActive) {//job not cancelled
             try {
-                return block()
+                val result = block()
+                if (interactive) {
+                    hideLoading()
+                }
+                return result
 
             } catch (e: Throwable) {
+                hideLoading()
                 error?.invoke(e)
                 viewModelJob.cancel()
             }
@@ -137,8 +150,8 @@ abstract class DataViewModel<Data> : ViewModel(), CoroutineScope {
      * ie. fun getData() {
      *          val combinedResult = CombinedResult()
      *          launchJob {
-     *              val job1 = execute(deferred1, { combinedResult.data1 = it }, { onError(it) })
-     *              val job2 = execute(deferred2, { combinedResult.data2 = it })
+     *              val job1 = executeAsync(deferred1, { combinedResult.data1 = it }, { onError(it) })
+     *              val job2 = executeAsync(deferred2, { combinedResult.data2 = it })
      *              ...
      *
      *              awaitAll(job1, job2...)
@@ -149,26 +162,29 @@ abstract class DataViewModel<Data> : ViewModel(), CoroutineScope {
      *          }
      *     }
      */
-    protected fun <T : Any> execute(
+    protected fun <T : Any> executeAsync(
         block: suspend () -> T,
         success: ((T) -> Unit)?,
         error: ((Throwable) -> Unit)? = null,
         interactive: Boolean = false
     ) =
-
         async {
             if (viewModelJob.isActive) {
-                //Log.d(TAG, "execute $block $coroutineContext" + Thread.currentThread())
+                //Log.d(TAG, "executeAsync $block $coroutineContext" + Thread.currentThread())
                 if (interactive) {
                     showLoading()
                 }
 
                 try {
                     val result = block()
+                    if (interactive) {
+                        hideLoading()
+                    }
                     success?.invoke(result)
                     //Log.d(TAG, "success $block $coroutineContext ${this.coroutineContext}" + Thread.currentThread())
 
                 } catch (e: Throwable) {
+                    hideLoading()
                     error?.invoke(e)
                     viewModelJob.cancel()
                 }

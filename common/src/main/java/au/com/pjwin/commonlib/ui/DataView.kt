@@ -4,7 +4,9 @@ import android.app.AlertDialog
 import android.arch.lifecycle.LifecycleOwner
 import android.arch.lifecycle.Observer
 import android.support.annotation.StringRes
+import android.support.design.widget.Snackbar
 import android.text.InputType
+import android.view.View
 import android.widget.EditText
 import android.widget.Toast
 import au.com.pjwin.commonlib.R
@@ -24,6 +26,8 @@ interface DataView<Data> : LifecycleOwner {
 
     @StringRes
     fun pageTitle(): Int = R.string.page_title_empty
+
+    fun rootView(): View?
 
     /**
      * try to work out the actual type of the ViewModel of the current
@@ -116,20 +120,23 @@ interface DataView<Data> : LifecycleOwner {
     }
 
     fun onNetworkError(exception: IOException) {
-        if (exception is SocketTimeoutException) {//todo display proper error message
-            Toast.makeText(Util.context(), "Connection timeout", Toast.LENGTH_SHORT).show()
+        if (exception is SocketTimeoutException) {
+            showError(R.string.error_connection_timeout)
 
         } else {
-            Toast.makeText(Util.context(), "No internet connection", Toast.LENGTH_SHORT).show()
+            showError(R.string.error_network)
         }
     }
 
     fun onRestError() {
-        Toast.makeText(Util.context(), "Unable to load content", Toast.LENGTH_SHORT).show()
+        showError(R.string.error_rest_generic)
     }
 
-    fun showError() {
-        //todo display proper error message
+    fun showError(@StringRes errorMessage: Int) {
+        //todo handle full screen error
+        rootView()?.let {
+            Snackbar.make(it, errorMessage, Snackbar.LENGTH_SHORT).show()
+        }
     }
 
     fun showBasicInputDialog(@StringRes titleId: Int, okAction: (String) -> Unit, cancelAction: (() -> Unit)? = null) {

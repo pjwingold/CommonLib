@@ -31,21 +31,21 @@ private const val CACHE_FILE_NAME = "cache_response"
 
 object RetrofitRepo {
     private val BASE_URL = String.format(
-        "%s://%s:%s/%s/",
-        Common.config.schema(), Common.config.host(), Common.config.port(), Common.config.contextRoot()
+            "%s://%s:%s/%s/",
+            Common.config.schema(), Common.config.host(), Common.config.port(), Common.config.contextRoot()
     )
 
     private val HTTP_LOG_INTERCEPTOR by lazy {
         HttpLoggingInterceptor()
-            .setLevel(if (Common.config.debug()) HttpLoggingInterceptor.Level.BODY else HttpLoggingInterceptor.Level.NONE)
-
+                .setLevel(if (Common.config.debug()) HttpLoggingInterceptor.Level.BODY else HttpLoggingInterceptor.Level.NONE)
     }
 
     private val BASIC_AUTH_INTERCEPTOR by lazy {
         Interceptor {
             //todo implement conversion if no base64 set
             val credentials = Common.config.credentialBase64()
-            injectAuth(it, String.format("Basic %s", credentials))
+            val authorisation = Common.config.authorisation()
+            injectAuth(it, String.format("%s %s", authorisation, credentials))
         }
     }
 
@@ -64,36 +64,37 @@ object RetrofitRepo {
     @JvmStatic
     val RETROFIT_OPEN_AUTH_XML by lazy {
         Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .client(httpClient(HTTP_LOG_INTERCEPTOR, CACHING_INTERCEPTOR))
-            .addConverterFactory(SimpleXmlConverterFactory.create(DATE_SERIALIZER))
-            .build()
+                .baseUrl(BASE_URL)
+                .client(httpClient(HTTP_LOG_INTERCEPTOR, CACHING_INTERCEPTOR))
+                .addConverterFactory(SimpleXmlConverterFactory.create(DATE_SERIALIZER))
+                .build()
     }
 
     @JvmStatic
     val RETROFIT_OPEN_AUTH by lazy {
         Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .client(httpClient(HTTP_LOG_INTERCEPTOR))
-            .addConverterFactory(GsonConverterFactory.create())
-            .addCallAdapterFactory(CoroutineCallAdapterFactory.invoke())
-            .build()
+                .baseUrl(BASE_URL)
+                .client(httpClient(HTTP_LOG_INTERCEPTOR))
+                .addConverterFactory(GsonConverterFactory.create())
+                .addCallAdapterFactory(CoroutineCallAdapterFactory.invoke())
+                .build()
     }
 
     @JvmStatic
     val RETROFIT_BASIC_AUTH by lazy {
         Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .client(httpClient(HTTP_LOG_INTERCEPTOR, BASIC_AUTH_INTERCEPTOR))
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
+                .baseUrl(BASE_URL)
+                .client(httpClient(HTTP_LOG_INTERCEPTOR, BASIC_AUTH_INTERCEPTOR))
+                .addConverterFactory(GsonConverterFactory.create())
+                .addCallAdapterFactory(CoroutineCallAdapterFactory.invoke())
+                .build()
     }
 
     @SuppressLint("VisibleForTests")
     private fun httpClient(vararg interceptors: Interceptor): OkHttpClient {
         val builder = OkHttpClient.Builder()
-            .readTimeout(Common.config.readTimeout(), TimeUnit.SECONDS)
-            .connectTimeout(Common.config.connectionTimeout(), TimeUnit.SECONDS)
+                .readTimeout(Common.config.readTimeout(), TimeUnit.SECONDS)
+                .connectTimeout(Common.config.connectionTimeout(), TimeUnit.SECONDS)
 
         interceptors.forEach {
             if (it is ResponseCachingInterceptor) {
@@ -119,11 +120,11 @@ object RetrofitRepo {
     private fun injectAuth(chain: Interceptor.Chain, authorisation: String): okhttp3.Response {
         val original = chain.request()
         val builder = original.newBuilder()
-            .header("Connection", "close")
-            .header("Accept", Common.config.acceptHeader())
-            .header("Authorization", authorisation)
-            //todo add UserAgent
-            .method(original.method(), original.body())
+                .header("Connection", "close")
+                .header("Accept", Common.config.acceptHeader())
+                .header("Authorization", authorisation)
+                //todo add UserAgent
+                .method(original.method(), original.body())
 
         return chain.proceed(builder.build())
     }
