@@ -43,6 +43,7 @@ dependencies {
     String supportLibraryVersion = prop("version.library.support")
     String fireBaseDBVersion = "16.0.2"
     String coroutineVersion = '1.0.1'
+    String navigationVersion = "1.0.0-rc02"
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation"org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
@@ -65,11 +66,6 @@ dependencies {
     api "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutineVersion"
     api 'com.jakewharton.retrofit:retrofit2-kotlin-coroutines-adapter:0.9.2'
 
-    api 'com.google.dagger:dagger-android:2.20'
-    api 'com.google.dagger:dagger-android-support:2.20' // if you use the support libraries
-    annotationProcessor 'com.google.dagger:dagger-android-processor:2.20'
-    annotationProcessor 'com.google.dagger:dagger-compiler:2.20'
-
     //cannot use testImplementation
     api 'com.squareup.okhttp3:mockwebserver:3.10.0'
 
@@ -83,8 +79,8 @@ dependencies {
 
     api "android.arch.lifecycle:extensions:$lifecycle_version"
     kapt "android.arch.lifecycle:compiler:$lifecycle_version"
-    api "android.arch.navigation:navigation-fragment:1.0.0-rc01"
-    api "android.arch.navigation:navigation-ui-ktx:1.0.0-rc01"
+    api "android.arch.navigation:navigation-fragment:$navigationVersion"
+    api "android.arch.navigation:navigation-ui-ktx:$navigationVersion"
 
     //api "android.arch.persistence.room:runtime:$room_version"
     //kapt "android.arch.persistence.room:compiler:$room_version"
