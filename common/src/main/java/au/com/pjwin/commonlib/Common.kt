@@ -5,6 +5,8 @@ import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import android.support.annotation.DrawableRes
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 class Common {
     companion object {
@@ -18,6 +20,11 @@ class Common {
 
         @JvmStatic
         val uiHandler: Handler by lazy { Handler(Looper.getMainLooper()) }
+
+        @JvmStatic
+        val cachedThreadPool: ExecutorService by lazy {
+            Executors.newCachedThreadPool()
+        }
 
         @JvmStatic
         var isUnitTest: Boolean = false
