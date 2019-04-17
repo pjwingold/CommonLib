@@ -43,7 +43,8 @@ dependencies {
     String supportLibraryVersion = prop("version.library.support")
     String fireBaseDBVersion = "16.0.2"
     String coroutineVersion = '1.0.1'
-    String navigationVersion = "1.0.0-rc02"
+    String navigationVersion = "1.0.0"
+    String mockkVersion = prop("version.mockk")
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation"org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
@@ -82,10 +83,13 @@ dependencies {
     api "android.arch.navigation:navigation-fragment:$navigationVersion"
     api "android.arch.navigation:navigation-ui-ktx:$navigationVersion"
 
+    api "io.mockk:mockk:$mockkVersion"//need to for BaseTest
+
     //api "android.arch.persistence.room:runtime:$room_version"
     //kapt "android.arch.persistence.room:compiler:$room_version"
 
     testImplementation 'junit:junit:4.12'
+
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 }

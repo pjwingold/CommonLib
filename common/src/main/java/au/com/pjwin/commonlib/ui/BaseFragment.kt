@@ -6,6 +6,7 @@ import android.databinding.DataBindingUtil
 import android.databinding.ViewDataBinding
 import android.os.Bundle
 import android.support.annotation.LayoutRes
+import android.support.design.widget.BottomNavigationView
 import android.support.v4.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -100,5 +101,9 @@ abstract class BaseFragment<Data, ChildViewModel : DataViewModel<Data>, Binding 
 
     fun setRefreshing(refreshing: Boolean) {
         baseActivity.setRefreshing(refreshing)
+    }
+
+    protected fun getBottomNavView(): BottomNavigationView? {
+        return baseActivity.bottomNavView
     }
 }

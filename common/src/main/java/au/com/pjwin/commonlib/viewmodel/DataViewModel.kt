@@ -2,7 +2,9 @@ package au.com.pjwin.commonlib.viewmodel
 
 import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.ViewModel
+import android.support.annotation.StringRes
 import au.com.pjwin.commonlib.Common
+import au.com.pjwin.commonlib.R
 import kotlinx.coroutines.*
 import kotlin.coroutines.CoroutineContext
 
@@ -12,7 +14,7 @@ import kotlin.coroutines.CoroutineContext
 
 abstract class DataViewModel<Data> : ViewModel(), CoroutineScope {
 
-    protected var viewModelJob: Job = SupervisorJob()
+    protected var viewModelJob: Job = Job()
 
     override val coroutineContext: CoroutineContext
         get() = if (!Common.isUnitTest) Dispatchers.IO else Dispatchers.Main + viewModelJob //response dispatch to both main and job thread
@@ -83,11 +85,10 @@ abstract class DataViewModel<Data> : ViewModel(), CoroutineScope {
     }
 
     /**
-     * Launch a coroutine on IO thread pool，
-     * create a new job if the old one is cancelled
+     * Launch a coroutine on the thread pool specified in [coroutineContext]
+     * create a new [Job] if the old one is cancelled, [Job.start] has no effect on cancelled job
      */
     protected fun launchJob(block: suspend () -> Unit): Job {
-        //must create a new job after previous is cancelled, job.start() has no effect on cancelled
         if (viewModelJob.isCancelled) {
             viewModelJob = Job()
         }
@@ -116,42 +117,47 @@ abstract class DataViewModel<Data> : ViewModel(), CoroutineScope {
      * @param block coroutine code to be executed
      * @param error what to do in case of error
      * @param interactive whether to show progress dialog
+     * @return [T] the value from the suspend block
      */
     protected suspend fun <T : Any> executeAwait(
         block: suspend () -> T,
         error: ((Throwable) -> Unit)? = null,
-        interactive: Boolean = false
+        interactive: Boolean = false,
+        cancelJob: Boolean = true,
+        cancelParent: Boolean = false
     ): T? {
-        if (interactive) {
-            showLoading()
-        }
-
         if (isActive) {//job not cancelled
+            if (interactive) {
+                showLoading()
+            }
+
             try {
-                val result = block()
+                return block()
+
+            } catch (e: Throwable) {
+                error?.invoke(e)
+                if (cancelJob) {
+                    cancelJob(cancelParent)
+                }
+
+            } finally {
                 if (interactive) {
                     hideLoading()
                 }
-                return result
-
-            } catch (e: Throwable) {
-                hideLoading()
-                error?.invoke(e)
-                viewModelJob.cancel()
             }
         }
         return null
     }
 
     /**
-     * Launch a coroutine with exception handling
-     * Use for parallel requests
+     * Prepare a coroutine to be executed with exception handling
+     * Used for parallel requests
      *
      * ie. fun getData() {
      *          val combinedResult = CombinedResult()
      *          launchJob {
-     *              val job1 = executeAsync(deferred1, { combinedResult.data1 = it }, { onError(it) })
-     *              val job2 = executeAsync(deferred2, { combinedResult.data2 = it })
+     *              val job1 = execute(deferred1, { combinedResult.data1 = it }, { onError(it) })
+     *              val job2 = execute(deferred2, { combinedResult.data2 = it })
      *              ...
      *
      *              awaitAll(job1, job2...)
@@ -161,33 +167,49 @@ abstract class DataViewModel<Data> : ViewModel(), CoroutineScope {
      *              }
      *          }
      *     }
+     *
+     * @return [Job] to be executed
      */
     protected fun <T : Any> executeAsync(
         block: suspend () -> T,
         success: ((T) -> Unit)?,
         error: ((Throwable) -> Unit)? = null,
-        interactive: Boolean = false
-    ) =
+        interactive: Boolean = false,
+        cancelJob: Boolean = true,
+        cancelParent: Boolean = false) =
+
         async {
-            if (viewModelJob.isActive) {
-                //Log.d(TAG, "executeAsync $block $coroutineContext" + Thread.currentThread())
+            if (isActive) {
                 if (interactive) {
                     showLoading()
                 }
 
                 try {
                     val result = block()
+                    success?.invoke(result)
+
+                } catch (e: Throwable) {
+                    error?.invoke(e)
+                    if (cancelJob) {
+                        cancelJob(cancelParent)
+                    }
+
+                } finally {
                     if (interactive) {
                         hideLoading()
                     }
-                    success?.invoke(result)
-                    //Log.d(TAG, "success $block $coroutineContext ${this.coroutineContext}" + Thread.currentThread())
-
-                } catch (e: Throwable) {
-                    hideLoading()
-                    error?.invoke(e)
-                    viewModelJob.cancel()
                 }
             }
         }
+
+    fun cancelJob(cancelParent: Boolean = true) {
+        if (cancelParent) {
+            viewModelJob.cancel()
+
+        } else {
+            //cancel remaining child jobs without affecting the parent job
+            //no need to recreate new job
+            viewModelJob.cancelChildren()
+        }
+    }
 }

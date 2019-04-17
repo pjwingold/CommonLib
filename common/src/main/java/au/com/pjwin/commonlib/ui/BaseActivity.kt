@@ -1,13 +1,14 @@
 package au.com.pjwin.commonlib.ui
 
-import android.arch.lifecycle.ViewModel
-import android.arch.lifecycle.ViewModelProviders
+import android.arch.lifecycle.*
 import android.databinding.DataBindingUtil
 import android.databinding.ViewDataBinding
 import android.os.Bundle
 import android.support.annotation.IdRes
 import android.support.annotation.LayoutRes
+import android.support.annotation.MenuRes
 import android.support.annotation.StringRes
+import android.support.design.widget.BottomNavigationView
 import android.support.v4.app.Fragment
 import android.support.v4.widget.SwipeRefreshLayout
 import android.support.v7.app.AppCompatActivity
@@ -16,16 +17,19 @@ import android.view.View
 import android.widget.FrameLayout
 import android.widget.ProgressBar
 import android.widget.TextView
-import androidx.navigation.findNavController
+import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.navigateUp
+import androidx.navigation.ui.NavigationUI.setupWithNavController
 import androidx.navigation.ui.setupActionBarWithNavController
 import au.com.pjwin.commonlib.R
+import au.com.pjwin.commonlib.extension.setupWithNavController
 import au.com.pjwin.commonlib.util.Util
 import au.com.pjwin.commonlib.viewmodel.DataViewModel
 import au.com.pjwin.commonlib.viewmodel.VoidViewModel
 import java.io.Serializable
+
+private const val NAV_FRAGMENT_TAG = "NAV_FRAGMENT_TAG"
 
 abstract class BaseActivity<Data, ChildViewModel : DataViewModel<Data>, Binding : ViewDataBinding>
     : AppCompatActivity(), DataView<Data>, BaseFragment.OnActionListener {
@@ -50,7 +54,14 @@ abstract class BaseActivity<Data, ChildViewModel : DataViewModel<Data>, Binding 
 
     private lateinit var appBarConfiguration: AppBarConfiguration
 
-    private lateinit var hostFragment: NavHostFragment
+    var bottomNavView: BottomNavigationView? = null
+        private set
+
+    protected var navigationGraphIds = listOf<Int>()
+
+    private var hostFragment: NavHostFragment? = null
+
+    protected var currentNavController: LiveData<NavController>? = null
 
     private val extras: Bundle
         get() {
@@ -63,7 +74,7 @@ abstract class BaseActivity<Data, ChildViewModel : DataViewModel<Data>, Binding 
 
     @Suppress("UNCHECKED_CAST")
     protected fun <T : Serializable> getExtra(arg: Arg): T =
-            extras.getSerializable(arg.name) as T
+        extras.getSerializable(arg.name) as T
 
     @LayoutRes
     protected abstract fun layoutId(): Int
@@ -107,16 +118,60 @@ abstract class BaseActivity<Data, ChildViewModel : DataViewModel<Data>, Binding 
     }
 
     private fun setupNavigation() {
-        hostFragment = getExistingFragment(R.id.nav_host_fragment)
-                ?: return
+        if (navigationGraphIds.size == 1) {
+            val existingFragment = getExistingFragment<NavHostFragment>(NAV_FRAGMENT_TAG)
+            existingFragment?.let { return }
 
-        val navController = hostFragment.navController
-        appBarConfiguration = AppBarConfiguration(navController.graph)
-        setupActionBarWithNavController(navController, appBarConfiguration)
+            hostFragment = NavHostFragment.create(navigationGraphIds[0])
+            hostFragment?.let {
+                supportFragmentManager.beginTransaction()
+                    .add(R.id.frame_layout, it, NAV_FRAGMENT_TAG)
+                    .commitNow()
+            }
+
+            val navController = hostFragment?.navController
+
+            navController?.let {
+                appBarConfiguration = AppBarConfiguration(it.graph)
+                setupActionBarWithNavController(it, appBarConfiguration)
+                currentNavController = MutableLiveData<NavController>()
+                (currentNavController as MutableLiveData<NavController>).value = it
+            }
+        }
+    }
+
+    protected fun setupBottomNavigation(@MenuRes menuRes: Int) {
+        if (navigationGraphIds.size > 1) {
+            bottomNavView = findViewById(R.id.bottom_nav)
+            bottomNavView?.apply {
+                inflateMenu(menuRes)
+                visibility = View.VISIBLE
+
+                // Setup the bottom navigation view with a list of navigation graphs
+                val navController = setupWithNavController(
+                    navGraphIds = navigationGraphIds,
+                    fragmentManager = supportFragmentManager,
+                    containerId = R.id.frame_layout,
+                    intent = intent
+                )
+
+                // Whenever the selected controller changes, setup the action bar.
+                navController.observe(this@BaseActivity, Observer { controller ->
+                    controller?.let { setupActionBarWithNavController(it) }
+                })
+                currentNavController = navController
+            }
+        }
     }
 
     override fun onSupportNavigateUp() =
-            findNavController(R.id.nav_host_fragment).navigateUp(appBarConfiguration)
+        currentNavController?.value?.navigateUp() ?: false
+
+    override fun onBackPressed() {
+        if (currentNavController?.value?.popBackStack() != true) {
+            super.onBackPressed()
+        }
+    }
 
     protected fun bindRoot() {
         if (this is SwipeRefreshActivity) {
@@ -186,8 +241,13 @@ abstract class BaseActivity<Data, ChildViewModel : DataViewModel<Data>, Binding 
         return fragmentDispatcher.getExistingFragment(id)
     }
 
+    protected fun <T : Fragment> getExistingFragment(tag: String): T? {
+        return fragmentDispatcher.getExistingFragment(tag)
+    }
+
+    @Suppress("UNCHECKED_CAST")
     protected fun <T : Fragment> getCurrentFragmentNav(): T? {
-        return hostFragment.childFragmentManager.primaryNavigationFragment as T?
+        return hostFragment?.childFragmentManager?.primaryNavigationFragment as T?
     }
 
     //hook

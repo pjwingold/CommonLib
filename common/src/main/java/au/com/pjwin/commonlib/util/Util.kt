@@ -5,6 +5,7 @@ import android.support.annotation.ColorInt
 import android.support.annotation.ColorRes
 import android.support.annotation.StringRes
 import android.support.v4.content.ContextCompat
+import android.util.SparseArray
 import au.com.pjwin.commonlib.Common
 
 object Util {
@@ -16,4 +17,14 @@ object Util {
 
     @ColorInt
     fun color(@ColorRes colorRes: Int) = ContextCompat.getColor(context(), colorRes)
+}
+
+fun <E> SparseArray<E>.toList(): List<E> {
+    val size = size()
+    val list = ArrayList<E>(size)
+
+    for (i in 0 until size) {
+        list.add(valueAt(i))
+    }
+    return list
 }

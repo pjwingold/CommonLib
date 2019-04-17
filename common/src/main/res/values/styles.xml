@@ -52,6 +52,10 @@
         <item name="android:paddingTop">@dimen/content_spacing</item>
     </style>
 
+    <style name="PagePadded" parent="ContentPadded">
+        <item name="android:layout_height">match_parent</item>
+    </style>
+
     <style name="ProgressBarInline" parent="@style/Base.Widget.AppCompat.ProgressBar">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">match_parent</item>

@@ -23,7 +23,7 @@ class Common {
 
         @JvmStatic
         val cachedThreadPool: ExecutorService by lazy {
-            Executors.newCachedThreadPool()
+            Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors())
         }
 
         @JvmStatic

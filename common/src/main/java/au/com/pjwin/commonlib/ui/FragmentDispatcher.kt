@@ -85,6 +85,11 @@ class FragmentDispatcher(host: BaseActivity<*, *, *>) : LifecycleObserver {
         return hostActivity?.getSupportFragmentManager()?.findFragmentById(id) as T?
     }
 
+    @Suppress("UNCHECKED_CAST")
+    fun <T : Fragment> getExistingFragment(tag: String): T? {
+        return hostActivity?.getSupportFragmentManager()?.findFragmentByTag(tag) as T?
+    }
+
     /**
      * null out just in case
      */
