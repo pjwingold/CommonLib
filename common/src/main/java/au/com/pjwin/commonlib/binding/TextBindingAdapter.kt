@@ -13,17 +13,17 @@ class TextBindingAdapter {
         @BindingAdapter("html")
         @JvmStatic
         fun TextView.setHtml(text: CharSequence) {
-            val spannable = SpannableString(Html.fromHtml(text.toString(), null, null))
+            val spannable = SpannableString(Html.fromHtml(text.toString()))
 
             val spans = spannable.getSpans(0, spannable.length, URLSpan::class.java)
 
             if (spans.isNotEmpty()) {
                 movementMethod = LinkMovementMethod.getInstance()
-                for (span in spans) {
-                    val start = spannable.getSpanStart(span)
-                    val end = spannable.getSpanEnd(span)
-                    spannable.removeSpan(span)
-                    spannable.setSpan(span, start, end, 0)
+                spans.forEach {
+                    val start = spannable.getSpanStart(it)
+                    val end = spannable.getSpanEnd(it)
+                    spannable.removeSpan(it)
+                    spannable.setSpan(it, start, end, 0)
                 }
             }
 

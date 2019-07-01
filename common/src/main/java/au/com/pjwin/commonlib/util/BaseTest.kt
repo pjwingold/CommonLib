@@ -28,4 +28,17 @@ abstract class BaseTest {
     fun after() {
         mockServer?.shutdown()
     }
+
+    protected fun await() {
+        mockServer?.let {
+            for (i in 0 until it.requestCount) {
+                it.takeRequest()
+            }
+        }
+    }
+
+    protected fun resetServer() {
+        mockServer?.shutdown()
+        mockServer= MockResource.initMockWebServer()//mock server cannot be restarted
+    }
 }

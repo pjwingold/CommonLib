@@ -44,7 +44,7 @@ interface DataView<Data> : LifecycleOwner {
             //0 - RealData, 1 - MainDataViewModel, 2 - RealViewDataBinding
             val arguments = (clazz.genericSuperclass as ParameterizedType).actualTypeArguments
 
-            val type = arguments.first {
+            val type = arguments.firstOrNull {
                 it is Class<*> && classType.isAssignableFrom(it)
             }
 
