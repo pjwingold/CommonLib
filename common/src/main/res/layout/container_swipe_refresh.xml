@@ -9,7 +9,7 @@
 
         <include layout="@layout/toolbar" />
 
-        <android.support.constraint.ConstraintLayout style="@style/MatchParentLayout">
+        <androidx.constraintlayout.widget.ConstraintLayout style="@style/MatchParentLayout">
 
             <ProgressBar
                 android:id="@+id/progress_inline"
@@ -20,7 +20,7 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
-            <android.support.v4.widget.SwipeRefreshLayout
+            <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
                 android:id="@+id/swipe_refresh_layout"
                 style="@style/MatchParentLayout">
 
@@ -29,16 +29,16 @@
                     style="@style/MatchParentLayout">
 
                 </FrameLayout>
-            </android.support.v4.widget.SwipeRefreshLayout>
+            </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-            <android.support.design.widget.BottomNavigationView
+            <com.google.android.material.bottomnavigation.BottomNavigationView
                 android:id="@+id/bottom_nav"
                 style="@style/SectionLayout"
                 android:visibility="gone"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent" />
 
-        </android.support.constraint.ConstraintLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
     </LinearLayout>
 </layout>

@@ -4,7 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
-import android.support.annotation.DrawableRes
+import androidx.annotation.DrawableRes
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 

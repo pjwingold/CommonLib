@@ -1,14 +1,15 @@
 package au.com.pjwin.commonlib.ui
 
 import android.app.AlertDialog
-import android.arch.lifecycle.LifecycleOwner
-import android.arch.lifecycle.Observer
-import android.support.annotation.StringRes
-import android.support.design.widget.Snackbar
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.Observer
+import androidx.annotation.StringRes
+import com.google.android.material.snackbar.Snackbar
 import android.text.InputType
 import android.view.View
 import android.widget.EditText
 import android.widget.Toast
+import androidx.lifecycle.Lifecycle
 import au.com.pjwin.commonlib.R
 import au.com.pjwin.commonlib.util.Util
 import au.com.pjwin.commonlib.viewmodel.DataViewModel
@@ -38,7 +39,7 @@ interface DataView<Data> : LifecycleOwner {
         var clazz: Class<*> = javaClass
         do {
             while (clazz.genericSuperclass !is ParameterizedType) {
-                clazz = clazz.superclass
+                clazz = clazz.superclass as Class<*>
             }
 
             //0 - RealData, 1 - MainDataViewModel, 2 - RealViewDataBinding
@@ -51,7 +52,7 @@ interface DataView<Data> : LifecycleOwner {
             if (type != null) {// ReadDataViewModel
                 return type
             }
-            clazz = clazz.superclass
+            clazz = clazz.superclass as Class<*>
 
         } while (clazz != null)
 
@@ -96,7 +97,10 @@ interface DataView<Data> : LifecycleOwner {
 
     fun showLoading() {
         val activity: BaseActivity<*, *, *> = getBaseActivity()
-        activity.showLoading()
+        //prevent showing in deep link
+        if (lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
+            activity.showLoading()
+        }
     }
 
     fun hideLoading() {

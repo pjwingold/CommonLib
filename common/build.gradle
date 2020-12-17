@@ -15,7 +15,7 @@ android {
         targetSdkVersion rootProject.properties.get("version.sdk.max").toInteger()
         versionCode project.versionCode
         versionName project.versionName
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
@@ -30,32 +30,38 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+
     dataBinding {
         enabled = true
     }
 }
 
 dependencies {
-    String retrofitVersion = '2.4.0'
-    String okHttpVersion = '3.6.0'
+    String retrofitVersion = '2.9.0'
+    String okHttpVersion = '4.2.2'
     //def room_version = '1.1.1'
-    String lifecycle_version = "1.1.1"
+    String lifecycle_version = "2.2.0"
     String supportLibraryVersion = prop("version.library.support")
-    String fireBaseDBVersion = "16.0.2"
-    String coroutineVersion = '1.0.1'
-    String navigationVersion = "1.0.0"
+    String fireBaseDBVersion = "19.5.1"
+    String coroutineVersion = '1.3.7'
+    String navigationVersion = "2.3.2"
     String mockkVersion = prop("version.mockk")
+    String koinVersion = "0.9.1"
+    String androidXVersion = "1.2.0"
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation"org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
-    api "com.android.support:appcompat-v7:$supportLibraryVersion"
-    api "com.android.support:support-v4:$supportLibraryVersion"
-    api "com.android.support:support-v13:$supportLibraryVersion"
-    api "com.android.support:design:$supportLibraryVersion"
-    api "com.android.support:recyclerview-v7:$supportLibraryVersion"
+    api "androidx.appcompat:appcompat:$androidXVersion"
+    api "androidx.legacy:legacy-support-v4:1.0.0"
+    api "androidx.legacy:legacy-support-v13:1.0.0"
+    api "com.google.android.material:material:1.2.1"
+    //api "androidx.recyclerview:recyclerview:$androidXVersion"
 
-    api 'com.android.support.constraint:constraint-layout:1.1.3'
+    api 'androidx.constraintlayout:constraintlayout:2.0.4'
 
     api "com.squareup.okhttp3:logging-interceptor:$okHttpVersion"
     api "com.squareup.okhttp3:okhttp-urlconnection:$okHttpVersion"
@@ -66,6 +72,11 @@ dependencies {
     api "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutineVersion"
     api "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutineVersion"
     api 'com.jakewharton.retrofit:retrofit2-kotlin-coroutines-adapter:0.9.2'
+
+    api "org.koin:koin-android:2.0.0-rc-2"
+    api "org.koin:koin-android-scope:2.0.0-rc-2"
+    api "org.koin:koin-android-viewmodel:2.0.0-rc-2"
+    //api "org.koin:koin-android-architecture:$koinVersion"
 
     //cannot use testImplementation
     api 'com.squareup.okhttp3:mockwebserver:3.10.0'
@@ -78,18 +89,18 @@ dependencies {
 
     api "com.google.firebase:firebase-database:$fireBaseDBVersion"
 
-    api "android.arch.lifecycle:extensions:$lifecycle_version"
-    kapt "android.arch.lifecycle:compiler:$lifecycle_version"
-    api "android.arch.navigation:navigation-fragment:$navigationVersion"
-    api "android.arch.navigation:navigation-ui-ktx:$navigationVersion"
+    api "androidx.lifecycle:lifecycle-extensions:$lifecycle_version"
+    api "androidx.lifecycle:lifecycle-common-java8:$lifecycle_version"
+    api "androidx.navigation:navigation-fragment-ktx:$navigationVersion"
+    api "androidx.navigation:navigation-ui-ktx:$navigationVersion"
 
-    api "io.mockk:mockk:$mockkVersion"//need to for BaseTest
+    testApi "io.mockk:mockk:$mockkVersion"//need to for BaseTest
 
     //api "android.arch.persistence.room:runtime:$room_version"
     //kapt "android.arch.persistence.room:compiler:$room_version"
 
-    testImplementation 'junit:junit:4.12'
+    testImplementation 'junit:junit:4.13.1'
 
-    androidTestImplementation 'com.android.support.test:runner:1.0.2'
-    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.2'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
 }

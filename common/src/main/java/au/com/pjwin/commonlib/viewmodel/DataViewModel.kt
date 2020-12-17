@@ -1,8 +1,8 @@
 package au.com.pjwin.commonlib.viewmodel
 
-import android.arch.lifecycle.MutableLiveData
-import android.arch.lifecycle.ViewModel
-import android.support.annotation.StringRes
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.annotation.StringRes
 import au.com.pjwin.commonlib.Common
 import au.com.pjwin.commonlib.R
 import kotlinx.coroutines.*

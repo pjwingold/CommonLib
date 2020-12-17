@@ -123,7 +123,7 @@ object RetrofitRepo {
             .header("Accept", Common.config.acceptHeader())
             .header("Authorization", authorisation)
             //todo add UserAgent
-            .method(original.method(), original.body())
+            .method(original.method, original.body)
 
         return chain.proceed(builder.build())
     }

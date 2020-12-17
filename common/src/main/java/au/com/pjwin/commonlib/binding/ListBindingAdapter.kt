@@ -1,10 +1,10 @@
 package au.com.pjwin.commonlib.binding
 
-import android.databinding.BindingAdapter
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.ListView
+import androidx.databinding.BindingAdapter
 
 class ListBindingAdapter {
 

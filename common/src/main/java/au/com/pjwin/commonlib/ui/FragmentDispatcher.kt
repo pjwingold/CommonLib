@@ -1,17 +1,17 @@
 package au.com.pjwin.commonlib.ui
 
-import android.arch.lifecycle.Lifecycle
-import android.arch.lifecycle.LifecycleObserver
-import android.arch.lifecycle.OnLifecycleEvent
-import android.support.annotation.IdRes
-import android.support.v4.app.Fragment
-import android.support.v4.app.FragmentActivity
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleObserver
+import androidx.lifecycle.OnLifecycleEvent
+import androidx.annotation.IdRes
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
 import au.com.pjwin.commonlib.R
 
-internal class FragmentDispatcher(host: FragmentActivity) : LifecycleObserver {
-    private var hostActivity: FragmentActivity? = host
+internal class FragmentDispatcher(host: androidx.fragment.app.FragmentActivity) : LifecycleObserver {
+    private var hostActivity: androidx.fragment.app.FragmentActivity? = host
     private var lifeCycle: Lifecycle? = host.lifecycle
-    private val profilePendingList = mutableListOf<Fragment>()
+    private val profilePendingList = mutableListOf<androidx.fragment.app.Fragment>()
     //prevent IllegalStateException: Can't change container ID of Fragment
     private val fragmentMap = HashMap<String, Int>()
     private val lock = Object()
@@ -26,7 +26,7 @@ internal class FragmentDispatcher(host: FragmentActivity) : LifecycleObserver {
         }
     }
 
-    fun dispatcherFragment(@IdRes container: Int, fragment: Fragment, animate: Boolean) {
+    fun dispatcherFragment(@IdRes container: Int, fragment: androidx.fragment.app.Fragment, animate: Boolean) {
         synchronized(lock) {
             if (fragmentMap[fragment.javaClass.name] == null) {
                 fragmentMap[fragment.javaClass.name] = container
@@ -42,13 +42,13 @@ internal class FragmentDispatcher(host: FragmentActivity) : LifecycleObserver {
         }
     }
 
-    private fun showFragment(fragment: Fragment) {
+    private fun showFragment(fragment: androidx.fragment.app.Fragment) {
         showFragment(R.id.frame_layout, fragment, false)
     }
 
-    private fun showFragment(@IdRes container: Int, fragment: Fragment, animate: Boolean) {
+    private fun showFragment(@IdRes container: Int, fragment: androidx.fragment.app.Fragment, animate: Boolean) {
         hostActivity?.let {
-            if (getExistingFragment<Fragment>(container) == null) {
+            if (getExistingFragment<androidx.fragment.app.Fragment>(container) == null) {
                 addFragment(container, fragment)
 
             } else {
@@ -57,7 +57,7 @@ internal class FragmentDispatcher(host: FragmentActivity) : LifecycleObserver {
         }
     }
 
-    private fun replaceFragment(@IdRes container: Int, fragment: Fragment, animate: Boolean) {
+    private fun replaceFragment(@IdRes container: Int, fragment: androidx.fragment.app.Fragment, animate: Boolean) {
         hostActivity?.let {
             val fragmentTransaction = it.supportFragmentManager.beginTransaction()
             //Custom animations MUST be set before .replace() is called or they will fail.
@@ -66,7 +66,7 @@ internal class FragmentDispatcher(host: FragmentActivity) : LifecycleObserver {
             }
             fragmentTransaction.replace(container, fragment, fragment.javaClass.name)
 
-            val existing = getExistingFragment<Fragment>(container)
+            val existing = getExistingFragment<androidx.fragment.app.Fragment>(container)
             if (existing != null) {//todo add checks to skip adding to backstack
                 fragmentTransaction.addToBackStack(existing.javaClass.name)
             }
@@ -75,19 +75,19 @@ internal class FragmentDispatcher(host: FragmentActivity) : LifecycleObserver {
         }
     }
 
-    private fun addFragment(@IdRes container: Int, fragment: Fragment) {
+    private fun addFragment(@IdRes container: Int, fragment: androidx.fragment.app.Fragment) {
         hostActivity?.supportFragmentManager?.beginTransaction()
             ?.add(container, fragment, fragment.javaClass.name)
             ?.commit()
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun <T : Fragment> getExistingFragment(@IdRes id: Int): T? {
+    fun <T : androidx.fragment.app.Fragment> getExistingFragment(@IdRes id: Int): T? {
         return hostActivity?.supportFragmentManager?.findFragmentById(id) as T?
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun <T : Fragment> getExistingFragment(tag: String): T? {
+    fun <T : androidx.fragment.app.Fragment> getExistingFragment(tag: String): T? {
         return hostActivity?.supportFragmentManager?.findFragmentByTag(tag) as T?
     }
 

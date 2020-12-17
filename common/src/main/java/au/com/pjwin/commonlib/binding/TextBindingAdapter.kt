@@ -1,11 +1,11 @@
 package au.com.pjwin.commonlib.binding
 
-import android.databinding.BindingAdapter
 import android.text.Html
 import android.text.SpannableString
 import android.text.method.LinkMovementMethod
 import android.text.style.URLSpan
 import android.widget.TextView
+import androidx.databinding.BindingAdapter
 
 class TextBindingAdapter {
 

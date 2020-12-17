@@ -11,7 +11,7 @@ class ResponseCachingInterceptor: Interceptor {
 
     override fun intercept(chain: Interceptor.Chain): Response {
         val request = chain.request()
-        val headers = request.headers()
+        val headers = request.headers
         val response: Response
 
         //todo cache framework

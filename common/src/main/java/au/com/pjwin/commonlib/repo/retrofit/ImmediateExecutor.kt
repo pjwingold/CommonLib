@@ -1,6 +1,6 @@
 package au.com.pjwin.commonlib.repo.retrofit
 
-import android.support.annotation.VisibleForTesting
+import androidx.annotation.VisibleForTesting
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Future

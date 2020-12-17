@@ -1,32 +1,30 @@
 package au.com.pjwin.commonlib.ui
 
-import android.arch.lifecycle.*
-import android.databinding.DataBindingUtil
-import android.databinding.ViewDataBinding
 import android.os.Bundle
-import android.support.annotation.IdRes
-import android.support.annotation.LayoutRes
-import android.support.annotation.MenuRes
-import android.support.annotation.StringRes
-import android.support.design.widget.BottomNavigationView
-import android.support.v4.app.Fragment
-import android.support.v4.widget.SwipeRefreshLayout
-import android.support.v7.app.AppCompatActivity
-import android.support.v7.widget.Toolbar
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.ProgressBar
 import android.widget.TextView
+import androidx.annotation.IdRes
+import androidx.annotation.LayoutRes
+import androidx.annotation.MenuRes
+import androidx.annotation.StringRes
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
+import androidx.databinding.DataBindingUtil
+import androidx.databinding.ViewDataBinding
+import androidx.lifecycle.*
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.NavigationUI.setupWithNavController
 import androidx.navigation.ui.setupActionBarWithNavController
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import au.com.pjwin.commonlib.R
 import au.com.pjwin.commonlib.extension.setupWithNavController
 import au.com.pjwin.commonlib.util.Util
 import au.com.pjwin.commonlib.viewmodel.DataViewModel
 import au.com.pjwin.commonlib.viewmodel.VoidViewModel
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import java.io.Serializable
 
 private const val NAV_FRAGMENT_TAG = "NAV_FRAGMENT_TAG"
@@ -36,11 +34,14 @@ abstract class BaseActivity<Data, ChildViewModel : DataViewModel<Data>, Binding 
 
     protected val TAG: String = javaClass.name
 
-    protected lateinit var fragmentDispatcher: FragmentDispatcher
+    private lateinit var fragmentDispatcher: FragmentDispatcher
 
     private lateinit var progressInline: ProgressBar
 
-    protected lateinit var viewModel: ChildViewModel
+    //DI with koin
+    protected lateinit var viewModel: ChildViewModel// by viewModel<>() // = getViewModel(getViewModelClass().kotlin)
+
+    //var viewModel1: VoidViewModel  by viewModel()
 
     protected lateinit var binding: Binding
 
@@ -99,7 +100,7 @@ abstract class BaseActivity<Data, ChildViewModel : DataViewModel<Data>, Binding 
         actionBar?.apply {
             setDisplayShowTitleEnabled(false)
             setDisplayHomeAsUpEnabled(!isParentActivity())
-            setDisplayShowHomeEnabled(!isParentActivity())
+            setDisplayShowHomeEnabled(true)//!isParentActivity())
         }
     }
 
@@ -109,6 +110,7 @@ abstract class BaseActivity<Data, ChildViewModel : DataViewModel<Data>, Binding 
     }
 
     protected fun setupViewModel() {
+        //viewModel = getViewModel(getViewModelClass().kotlin)
         viewModel = ViewModelProviders.of(this)[getViewModelClass()]
         registerObservers(viewModel)
 
@@ -167,6 +169,7 @@ abstract class BaseActivity<Data, ChildViewModel : DataViewModel<Data>, Binding 
     override fun onSupportNavigateUp() =
         currentNavController?.value?.navigateUp() ?: false
 
+    //need this if defaultNavHost is not set in NavHostFragment
     override fun onBackPressed() {
         if (currentNavController?.value?.popBackStack() != true) {
             super.onBackPressed()
@@ -220,38 +223,42 @@ abstract class BaseActivity<Data, ChildViewModel : DataViewModel<Data>, Binding 
         progressInline.visibility = if (show) View.VISIBLE else View.GONE
     }*/
 
-    protected fun showFragment(fragment: Fragment) {
+    protected fun showFragment(fragment: androidx.fragment.app.Fragment) {
         showFragment(R.id.frame_layout, fragment)
     }
 
-    protected fun showFragment(@IdRes container: Int, fragment: Fragment) {
+    protected fun showFragment(@IdRes container: Int, fragment: androidx.fragment.app.Fragment) {
         showFragment(container, fragment, true)
     }
 
-    protected fun showFragment(@IdRes container: Int, fragment: Fragment, animate: Boolean) {
+    protected fun showFragment(
+        @IdRes container: Int,
+        fragment: androidx.fragment.app.Fragment,
+        animate: Boolean
+    ) {
         fragmentDispatcher.dispatcherFragment(container, fragment, animate)
     }
 
-    protected fun <T : Fragment> getExistingFragment(): T? {
+    protected fun <T : androidx.fragment.app.Fragment> getExistingFragment(): T? {
         return getExistingFragment(R.id.frame_layout)
     }
 
     @Suppress("UNCHECKED_CAST")
-    protected fun <T : Fragment> getExistingFragment(@IdRes id: Int): T? {
+    protected fun <T : androidx.fragment.app.Fragment> getExistingFragment(@IdRes id: Int): T? {
         return fragmentDispatcher.getExistingFragment(id)
     }
 
-    protected fun <T : Fragment> getExistingFragment(tag: String): T? {
+    protected fun <T : androidx.fragment.app.Fragment> getExistingFragment(tag: String): T? {
         return fragmentDispatcher.getExistingFragment(tag)
     }
 
     @Suppress("UNCHECKED_CAST")
-    protected fun <T : Fragment> getCurrentFragmentNav(): T? {
+    protected fun <T : androidx.fragment.app.Fragment> getCurrentFragmentNav(): T? {
         return hostFragment?.childFragmentManager?.primaryNavigationFragment as T?
     }
 
     //hook
-    override fun onPrimaryAction(fragment: Fragment) {
+    override fun onPrimaryAction(fragment: androidx.fragment.app.Fragment) {
     }
 
     private fun isParentActivity() = supportParentActivityIntent == null

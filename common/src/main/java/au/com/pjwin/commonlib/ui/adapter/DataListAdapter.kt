@@ -1,13 +1,13 @@
 package au.com.pjwin.commonlib.ui.adapter
 
 import android.content.Context
-import android.databinding.DataBindingUtil
-import android.databinding.ViewDataBinding
-import android.support.annotation.LayoutRes
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
+import androidx.annotation.LayoutRes
+import androidx.databinding.DataBindingUtil
+import androidx.databinding.ViewDataBinding
 
 abstract class DataListAdapter<Data, Binding : ViewDataBinding>(
     context: Context,
@@ -46,7 +46,7 @@ abstract class DataListAdapter<Data, Binding : ViewDataBinding>(
         else
             DataBindingUtil.inflate<Binding>(layoutInflater, layoutId(), parent, false)
 
-        bindData(binding, getItem(position), position)
+        bindData(binding!!, getItem(position), position)
 
         return binding.root
     }

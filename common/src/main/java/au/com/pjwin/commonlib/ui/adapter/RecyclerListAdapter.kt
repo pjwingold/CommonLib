@@ -1,17 +1,17 @@
 package au.com.pjwin.commonlib.ui.adapter
 
 import android.content.Context
-import android.databinding.DataBindingUtil
-import android.databinding.ViewDataBinding
-import android.support.annotation.LayoutRes
-import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.annotation.LayoutRes
+import androidx.databinding.DataBindingUtil
+import androidx.databinding.ViewDataBinding
+import androidx.recyclerview.widget.RecyclerView
 
 @Suppress("UNCHECKED_CAST")
-abstract class RecyclerListAdapter<Data, Binding : ViewDataBinding, ViewHolder : RecyclerView.ViewHolder>() :
-        RecyclerView.Adapter<ViewHolder>() {
+abstract class RecyclerListAdapter<Data, Binding : ViewDataBinding, ViewHolder : androidx.recyclerview.widget.RecyclerView.ViewHolder>() :
+    RecyclerView.Adapter<ViewHolder>() {
 
     var list: List<Data>? = null
         set(value) {
@@ -28,7 +28,11 @@ abstract class RecyclerListAdapter<Data, Binding : ViewDataBinding, ViewHolder :
         this.list = list
     }
 
-    constructor(context: Context, list: List<Data>, onClickListener: ListClickListener<Data>) : this(context, list) {
+    constructor(
+        context: Context,
+        list: List<Data>,
+        onClickListener: ListClickListener<Data>
+    ) : this(context, list) {
         this.onClickListener = onClickListener
     }
 

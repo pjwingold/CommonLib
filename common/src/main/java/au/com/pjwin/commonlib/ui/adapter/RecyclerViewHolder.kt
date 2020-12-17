@@ -1,7 +1,7 @@
 package au.com.pjwin.commonlib.ui.adapter
 
-import android.support.v7.widget.RecyclerView
+import androidx.recyclerview.widget.RecyclerView
 import android.view.View
 
-class RecyclerViewHolder(val view: View) : RecyclerView.ViewHolder(view) {
+class RecyclerViewHolder(val view: View) : androidx.recyclerview.widget.RecyclerView.ViewHolder(view) {
 }

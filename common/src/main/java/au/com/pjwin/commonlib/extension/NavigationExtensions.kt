@@ -16,11 +16,11 @@
 
 package au.com.pjwin.commonlib.extension
 
-import android.arch.lifecycle.LiveData
-import android.arch.lifecycle.MutableLiveData
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import android.content.Intent
-import android.support.design.widget.BottomNavigationView
-import android.support.v4.app.FragmentManager
+import com.google.android.material.bottomnavigation.BottomNavigationView
+import androidx.fragment.app.FragmentManager
 import android.util.SparseArray
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
@@ -34,10 +34,10 @@ import au.com.pjwin.commonlib.R
  * This sample is a workaround until the Navigation Component supports multiple back stacks.
  */
 fun BottomNavigationView.setupWithNavController(
-        navGraphIds: List<Int>,
-        fragmentManager: FragmentManager,
-        containerId: Int,
-        intent: Intent
+    navGraphIds: List<Int>,
+    fragmentManager: androidx.fragment.app.FragmentManager,
+    containerId: Int,
+    intent: Intent
 ): LiveData<NavController> {
 
     // Map of tags
@@ -97,7 +97,7 @@ fun BottomNavigationView.setupWithNavController(
             if (selectedItemTag != newlySelectedItemTag) {
                 // Pop everything above the first fragment (the "fixed start destination")
                 fragmentManager.popBackStack(firstFragmentTag,
-                        FragmentManager.POP_BACK_STACK_INCLUSIVE)
+                        androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE)
                 val selectedFragment = fragmentManager.findFragmentByTag(newlySelectedItemTag)
                         as NavHostFragment
 
@@ -164,10 +164,10 @@ fun BottomNavigationView.setupWithNavController(
 }
 
 private fun BottomNavigationView.setupDeepLinks(
-        navGraphIds: List<Int>,
-        fragmentManager: FragmentManager,
-        containerId: Int,
-        intent: Intent
+    navGraphIds: List<Int>,
+    fragmentManager: androidx.fragment.app.FragmentManager,
+    containerId: Int,
+    intent: Intent
 ) {
     navGraphIds.forEachIndexed { index, navGraphId ->
         val fragmentTag = getFragmentTag(index)
@@ -188,7 +188,7 @@ private fun BottomNavigationView.setupDeepLinks(
 
 private fun BottomNavigationView.setupItemReselected(
         graphIdToTagMap: SparseArray<String>,
-        fragmentManager: FragmentManager
+        fragmentManager: androidx.fragment.app.FragmentManager
 ) {
     setOnNavigationItemReselectedListener { item ->
         val newlySelectedItemTag = graphIdToTagMap[item.itemId]
@@ -203,8 +203,8 @@ private fun BottomNavigationView.setupItemReselected(
 }
 
 private fun detachNavHostFragment(
-        fragmentManager: FragmentManager,
-        navHostFragment: NavHostFragment
+    fragmentManager: androidx.fragment.app.FragmentManager,
+    navHostFragment: NavHostFragment
 ) {
     fragmentManager.beginTransaction()
             .detach(navHostFragment)
@@ -212,9 +212,9 @@ private fun detachNavHostFragment(
 }
 
 private fun attachNavHostFragment(
-        fragmentManager: FragmentManager,
-        navHostFragment: NavHostFragment,
-        isPrimaryNavFragment: Boolean
+    fragmentManager: androidx.fragment.app.FragmentManager,
+    navHostFragment: NavHostFragment,
+    isPrimaryNavFragment: Boolean
 ) {
     fragmentManager.beginTransaction()
             .attach(navHostFragment)
@@ -228,10 +228,10 @@ private fun attachNavHostFragment(
 }
 
 private fun obtainNavHostFragment(
-        fragmentManager: FragmentManager,
-        fragmentTag: String,
-        navGraphId: Int,
-        containerId: Int
+    fragmentManager: androidx.fragment.app.FragmentManager,
+    fragmentTag: String,
+    navGraphId: Int,
+    containerId: Int
 ): NavHostFragment {
     // If the Nav Host fragment exists, return it
     val existingFragment = fragmentManager.findFragmentByTag(fragmentTag) as NavHostFragment?
@@ -245,7 +245,7 @@ private fun obtainNavHostFragment(
     return navHostFragment
 }
 
-private fun FragmentManager.isOnBackStack(backStackName: String): Boolean {
+private fun androidx.fragment.app.FragmentManager.isOnBackStack(backStackName: String): Boolean {
     val backStackCount = backStackEntryCount
     for (index in 0 until backStackCount) {
         if (getBackStackEntryAt(index).name == backStackName) {

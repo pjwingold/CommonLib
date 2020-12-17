@@ -1,22 +1,21 @@
 package au.com.pjwin.commonlib.ui
 
-import android.arch.lifecycle.ViewModel
-import android.arch.lifecycle.ViewModelProviders
-import android.databinding.DataBindingUtil
-import android.databinding.ViewDataBinding
 import android.os.Bundle
-import android.support.annotation.LayoutRes
-import android.support.design.widget.BottomNavigationView
-import android.support.v4.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.annotation.LayoutRes
+import androidx.databinding.DataBindingUtil
+import androidx.databinding.ViewDataBinding
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProviders
 import au.com.pjwin.commonlib.extension.baseActivity
 import au.com.pjwin.commonlib.viewmodel.DataViewModel
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import java.io.Serializable
 
 abstract class BaseFragment<Data, ChildViewModel : DataViewModel<Data>, Binding : ViewDataBinding> :
-        Fragment(), DataView<Data> {
+    androidx.fragment.app.Fragment(), DataView<Data> {
 
     protected val TAG: String = javaClass.name
 
@@ -66,7 +65,11 @@ abstract class BaseFragment<Data, ChildViewModel : DataViewModel<Data>, Binding 
         initPageTitle()
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         binding = DataBindingUtil.inflate(inflater, layoutId(), container, false)
         return binding.root
     }
@@ -84,7 +87,7 @@ abstract class BaseFragment<Data, ChildViewModel : DataViewModel<Data>, Binding 
 
     @Suppress("UNCHECKED_CAST")
     protected fun <T : Serializable> getArgument(arg: Arg): T? =
-            arguments?.getSerializable(arg.ordinal.toString()) as T?
+        arguments?.getSerializable(arg.ordinal.toString()) as T?
 
     fun onPrimaryAction() {
         if (activity is OnActionListener) {
@@ -94,7 +97,7 @@ abstract class BaseFragment<Data, ChildViewModel : DataViewModel<Data>, Binding 
 
     //have to create functional interface for better interop with java
     interface OnActionListener {
-        fun onPrimaryAction(fragment: Fragment)
+        fun onPrimaryAction(fragment: androidx.fragment.app.Fragment)
     }
 
     fun isRefreshing() = baseActivity.isRefreshing()
