@@ -38,8 +38,8 @@ abstract class BaseActivity<Data, ChildViewModel : DataViewModel<Data>, Binding 
 
     private lateinit var progressInline: ProgressBar
 
-    //DI with koin
-    protected lateinit var viewModel: ChildViewModel// by viewModel<>() // = getViewModel(getViewModelClass().kotlin)
+    //todo DI
+    protected lateinit var viewModel: ChildViewModel
 
     //var viewModel1: VoidViewModel  by viewModel()
 
@@ -85,8 +85,6 @@ abstract class BaseActivity<Data, ChildViewModel : DataViewModel<Data>, Binding 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        fragmentDispatcher = FragmentDispatcher(this)
-        lifecycle.addObserver(fragmentDispatcher)
         bindRoot()
         setupViewModel()
         initToolbar()
@@ -110,8 +108,7 @@ abstract class BaseActivity<Data, ChildViewModel : DataViewModel<Data>, Binding 
     }
 
     protected fun setupViewModel() {
-        //viewModel = getViewModel(getViewModelClass().kotlin)
-        viewModel = ViewModelProviders.of(this)[getViewModelClass()]
+        viewModel = ViewModelProvider(this)[getViewModelClass()]
         registerObservers(viewModel)
 
         if (viewModel is VoidViewModel) {
@@ -144,6 +141,7 @@ abstract class BaseActivity<Data, ChildViewModel : DataViewModel<Data>, Binding 
 
     protected fun setupBottomNavigation(@MenuRes menuRes: Int) {
         if (navigationGraphIds.size > 1) {
+            //todo update with NavigationUI.setupWithNavController()
             bottomNavView = findViewById(R.id.bottom_nav)
             bottomNavView?.apply {
                 inflateMenu(menuRes)

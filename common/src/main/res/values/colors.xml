@@ -7,6 +7,9 @@
     <color name="text_field_background_color">#ffffffff</color>
     <color name="text_field_border_default_color">#ffd1d7da</color>
     <color name="text_primary_color">#ff000000</color>
+    <color name="text_primary_color_white">#ffffffff</color>
 
     <color name="separator_color">#90909090</color>
+
+    <color name="bottom_nav_text_color" />
 </resources>

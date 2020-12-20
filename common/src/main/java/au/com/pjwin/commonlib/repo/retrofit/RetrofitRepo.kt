@@ -2,7 +2,6 @@ package au.com.pjwin.commonlib.repo.retrofit
 
 import android.annotation.SuppressLint
 import au.com.pjwin.commonlib.Common
-import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterFactory
 import okhttp3.Cache
 import okhttp3.Dispatcher
 import okhttp3.Interceptor
@@ -32,7 +31,10 @@ private const val CACHE_FILE_NAME = "cache_response"
 object RetrofitRepo {
     private val BASE_URL = String.format(
         "%s://%s:%s/%s/",
-        Common.config.schema(), Common.config.host(), Common.config.port(), Common.config.contextRoot()
+        Common.config.schema(),
+        Common.config.host(),
+        Common.config.port(),
+        Common.config.contextRoot()
     )
 
     private val HTTP_LOG_INTERCEPTOR by lazy {
@@ -62,7 +64,7 @@ object RetrofitRepo {
     }
 
     @JvmStatic
-    val RETROFIT_OPEN_AUTH_XML: Retrofit  by lazy {
+    val RETROFIT_OPEN_AUTH_XML: Retrofit by lazy {
         Retrofit.Builder()
             .baseUrl(BASE_URL)
             .client(httpClient(HTTP_LOG_INTERCEPTOR, CACHING_INTERCEPTOR))
@@ -71,12 +73,11 @@ object RetrofitRepo {
     }
 
     @JvmStatic
-    val RETROFIT_OPEN_AUTH: Retrofit  by lazy {
+    val RETROFIT_OPEN_AUTH: Retrofit by lazy {
         Retrofit.Builder()
             .baseUrl(BASE_URL)
             .client(httpClient(HTTP_LOG_INTERCEPTOR))
             .addConverterFactory(GsonConverterFactory.create())
-            .addCallAdapterFactory(CoroutineCallAdapterFactory.invoke())
             .build()
     }
 
@@ -86,7 +87,6 @@ object RetrofitRepo {
             .baseUrl(BASE_URL)
             .client(httpClient(HTTP_LOG_INTERCEPTOR, BASIC_AUTH_INTERCEPTOR))
             .addConverterFactory(GsonConverterFactory.create())
-            .addCallAdapterFactory(CoroutineCallAdapterFactory.invoke())
             .build()
     }
 
@@ -144,7 +144,12 @@ object RetrofitRepo {
         enqueue(call, success, error) {}
     }
 
-    fun <T> enqueue(call: Call<T>, success: (T?) -> Unit, error: (Throwable) -> Unit, received: (Boolean) -> Unit) {
+    fun <T> enqueue(
+        call: Call<T>,
+        success: (T?) -> Unit,
+        error: (Throwable) -> Unit,
+        received: (Boolean) -> Unit
+    ) {
         enqueue(call, object : Feedback<T>() {
             override fun success(model: T?) {
                 success(model)

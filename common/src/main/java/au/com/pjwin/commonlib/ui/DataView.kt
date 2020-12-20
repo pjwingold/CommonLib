@@ -60,9 +60,9 @@ interface DataView<Data> : LifecycleOwner {
     }
 
     fun registerObservers(dataViewModel: DataViewModel<Data>) {
-        dataViewModel.liveData.observe(this, Observer<Data> { onData(it) })
-        dataViewModel.errorData.observe(this, Observer<Throwable> { onError(it) })
-        dataViewModel.loadingData.observe(this, Observer<Boolean> { loading ->
+        dataViewModel.liveData.observe(this, { onData(it) })
+        dataViewModel.errorData.observe(this, { onError(it) })
+        dataViewModel.loadingData.observe(this, { loading ->
             if (loading == true) showLoading()
             else hideLoading()
         })
@@ -76,7 +76,7 @@ interface DataView<Data> : LifecycleOwner {
     fun <T : BaseActivity<*, *, *>> getBaseActivity(): T {
         val type = this
         return if (type is BaseFragment<*, *, *>) {
-            type.getActivity() as T
+            type.activity as T
 
         } else {
             type as T

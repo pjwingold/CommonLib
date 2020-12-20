@@ -7,15 +7,16 @@ import android.view.ViewGroup
 import androidx.annotation.LayoutRes
 import androidx.databinding.DataBindingUtil
 import androidx.databinding.ViewDataBinding
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.ViewModelProvider
 import au.com.pjwin.commonlib.extension.baseActivity
 import au.com.pjwin.commonlib.viewmodel.DataViewModel
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import java.io.Serializable
 
 abstract class BaseFragment<Data, ChildViewModel : DataViewModel<Data>, Binding : ViewDataBinding> :
-    androidx.fragment.app.Fragment(), DataView<Data> {
+    Fragment(), DataView<Data> {
 
     protected val TAG: String = javaClass.name
 
@@ -38,12 +39,10 @@ abstract class BaseFragment<Data, ChildViewModel : DataViewModel<Data>, Binding 
     @Throws(IllegalStateException::class)
     protected fun setupViewModel() {
         viewModel = if (isFragmentObserver()) {
-            ViewModelProviders.of(this).get(getViewModelClass())
+            ViewModelProvider(this).get(getViewModelClass())
 
         } else {
-            activity?.run {
-                ViewModelProviders.of(this).get(getViewModelClass())
-            } ?: throw IllegalStateException()
+            ViewModelProvider(requireActivity()).get(getViewModelClass())
         }
         registerObservers(viewModel)
     }
@@ -97,7 +96,7 @@ abstract class BaseFragment<Data, ChildViewModel : DataViewModel<Data>, Binding 
 
     //have to create functional interface for better interop with java
     interface OnActionListener {
-        fun onPrimaryAction(fragment: androidx.fragment.app.Fragment)
+        fun onPrimaryAction(fragment: Fragment)
     }
 
     fun isRefreshing() = baseActivity.isRefreshing()

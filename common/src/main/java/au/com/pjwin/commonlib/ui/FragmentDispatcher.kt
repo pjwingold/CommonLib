@@ -8,7 +8,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import au.com.pjwin.commonlib.R
 
-internal class FragmentDispatcher(host: androidx.fragment.app.FragmentActivity) : LifecycleObserver {
+internal class FragmentDispatcher(host: FragmentActivity) : LifecycleObserver {
     private var hostActivity: androidx.fragment.app.FragmentActivity? = host
     private var lifeCycle: Lifecycle? = host.lifecycle
     private val profilePendingList = mutableListOf<androidx.fragment.app.Fragment>()
@@ -82,12 +82,12 @@ internal class FragmentDispatcher(host: androidx.fragment.app.FragmentActivity) 
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun <T : androidx.fragment.app.Fragment> getExistingFragment(@IdRes id: Int): T? {
+    fun <T : Fragment> getExistingFragment(@IdRes id: Int): T? {
         return hostActivity?.supportFragmentManager?.findFragmentById(id) as T?
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun <T : androidx.fragment.app.Fragment> getExistingFragment(tag: String): T? {
+    fun <T : Fragment> getExistingFragment(tag: String): T? {
         return hostActivity?.supportFragmentManager?.findFragmentByTag(tag) as T?
     }
 

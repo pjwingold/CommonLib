@@ -156,8 +156,8 @@ abstract class DataViewModel<Data> : ViewModel(), CoroutineScope {
      * ie. fun getData() {
      *          val combinedResult = CombinedResult()
      *          launchJob {
-     *              val job1 = execute(deferred1, { combinedResult.data1 = it }, { onError(it) })
-     *              val job2 = execute(deferred2, { combinedResult.data2 = it })
+     *              val job1 = executeAsync(deferred1, { combinedResult.data1 = it }, { onError(it) })
+     *              val job2 = executeAsync(deferred2, { combinedResult.data2 = it })
      *              ...
      *
      *              awaitAll(job1, job2...)
