@@ -1,68 +1,52 @@
 package au.com.pjwin.commonlib.ui
 
 import android.os.Bundle
+import android.view.MenuItem
 import android.view.View
+import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.annotation.IdRes
 import androidx.annotation.LayoutRes
-import androidx.annotation.MenuRes
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import androidx.core.widget.NestedScrollView
 import androidx.databinding.DataBindingUtil
 import androidx.databinding.ViewDataBinding
-import androidx.lifecycle.*
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
-import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import au.com.pjwin.commonlib.R
-import au.com.pjwin.commonlib.extension.setupWithNavController
 import au.com.pjwin.commonlib.util.Util
 import au.com.pjwin.commonlib.viewmodel.DataViewModel
-import au.com.pjwin.commonlib.viewmodel.VoidViewModel
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import java.io.Serializable
-
-private const val NAV_FRAGMENT_TAG = "NAV_FRAGMENT_TAG"
 
 abstract class BaseActivity<Data, ChildViewModel : DataViewModel<Data>, Binding : ViewDataBinding>
     : AppCompatActivity(), DataView<Data>, BaseFragment.OnActionListener {
 
     protected val TAG: String = javaClass.name
 
-    private lateinit var fragmentDispatcher: FragmentDispatcher
-
-    private lateinit var progressInline: ProgressBar
-
-    //todo DI
     protected lateinit var viewModel: ChildViewModel
-
-    //var viewModel1: VoidViewModel  by viewModel()
-
     protected lateinit var binding: Binding
-
-    protected lateinit var rootView: View
-
-    protected lateinit var frameLayout: FrameLayout
-
-    //protected var inlineLoading = true
-
+    protected var rootView: View? = null
+    protected var frameLayout: FrameLayout? = null
     protected var swipeRefreshLayout: SwipeRefreshLayout? = null
-
-    private lateinit var appBarConfiguration: AppBarConfiguration
+    private var progressInline: ProgressBar? = null
 
     var bottomNavView: BottomNavigationView? = null
         private set
+    private var navController: NavController? = null
+    private var container: View? = null
 
-    protected var navigationGraphIds = listOf<Int>()
+    private var nestedScrollView: NestedScrollView? = null
 
     private var hostFragment: NavHostFragment? = null
-
-    protected var currentNavController: LiveData<NavController>? = null
 
     private val extras: Bundle
         get() {
@@ -80,6 +64,10 @@ abstract class BaseActivity<Data, ChildViewModel : DataViewModel<Data>, Binding 
     @LayoutRes
     protected abstract fun layoutId(): Int
 
+    protected open fun navGraph() = NavGraphModel()
+
+    protected open fun scroll() = false
+
     override fun rootView() = rootView
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -88,7 +76,6 @@ abstract class BaseActivity<Data, ChildViewModel : DataViewModel<Data>, Binding 
         bindRoot()
         setupViewModel()
         initToolbar()
-        setupNavigation()
     }
 
     override fun onStart() {
@@ -98,7 +85,14 @@ abstract class BaseActivity<Data, ChildViewModel : DataViewModel<Data>, Binding 
         actionBar?.apply {
             setDisplayShowTitleEnabled(false)
             setDisplayHomeAsUpEnabled(!isParentActivity())
-            setDisplayShowHomeEnabled(true)//!isParentActivity())
+            setDisplayShowHomeEnabled(true)
+        }//TODO update toolbar in BaseFragment
+    }
+
+    override fun onResume() {
+        super.onResume()
+        supportActionBar?.run {
+            setPageTitle(pageTitle())
         }
     }
 
@@ -107,95 +101,80 @@ abstract class BaseActivity<Data, ChildViewModel : DataViewModel<Data>, Binding 
         return genericType(ViewModel::class.java) as Class<ChildViewModel>
     }
 
-    protected fun setupViewModel() {
+    private fun setupViewModel() {
         viewModel = ViewModelProvider(this)[getViewModelClass()]
         registerObservers(viewModel)
-
-        if (viewModel is VoidViewModel) {
-            frameLayout.visibility = View.VISIBLE
-        }
     }
 
-    private fun setupNavigation() {
-        if (navigationGraphIds.size == 1) {
-            val existingFragment = getExistingFragment<NavHostFragment>(NAV_FRAGMENT_TAG)
-            existingFragment?.let { return }
-
-            hostFragment = NavHostFragment.create(navigationGraphIds[0])
-            hostFragment?.let {
-                supportFragmentManager.beginTransaction()
-                    .add(R.id.frame_layout, it, NAV_FRAGMENT_TAG)
-                    .commitNow()
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            android.R.id.home -> {
+                onBackPressed()
+                true
             }
 
-            val navController = hostFragment?.navController
-
-            navController?.let {
-                appBarConfiguration = AppBarConfiguration(it.graph)
-                setupActionBarWithNavController(it, appBarConfiguration)
-                currentNavController = MutableLiveData<NavController>()
-                (currentNavController as MutableLiveData<NavController>).value = it
-            }
-        }
-    }
-
-    protected fun setupBottomNavigation(@MenuRes menuRes: Int) {
-        if (navigationGraphIds.size > 1) {
-            //todo update with NavigationUI.setupWithNavController()
-            bottomNavView = findViewById(R.id.bottom_nav)
-            bottomNavView?.apply {
-                inflateMenu(menuRes)
-                visibility = View.VISIBLE
-
-                // Setup the bottom navigation view with a list of navigation graphs
-                val navController = setupWithNavController(
-                    navGraphIds = navigationGraphIds,
-                    fragmentManager = supportFragmentManager,
-                    containerId = R.id.frame_layout,
-                    intent = intent
-                )
-
-                // Whenever the selected controller changes, setup the action bar.
-                navController.observe(this@BaseActivity, Observer { controller ->
-                    controller?.let { setupActionBarWithNavController(it) }
-                })
-                currentNavController = navController
-            }
-        }
-    }
-
-    override fun onSupportNavigateUp() =
-        currentNavController?.value?.navigateUp() ?: false
-
-    //need this if defaultNavHost is not set in NavHostFragment
-    override fun onBackPressed() {
-        if (currentNavController?.value?.popBackStack() != true) {
-            super.onBackPressed()
+            else -> super.onOptionsItemSelected(item)
         }
     }
 
     protected fun bindRoot() {
-        if (this is SwipeRefreshActivity) {
-            binding = DataBindingUtil.setContentView(this, R.layout.container_swipe_refresh)
-            swipeRefreshLayout = findViewById(R.id.swipe_refresh_layout)
+        val graph = navGraph()
+        if (graph.graphId == 0) {
+            if (this is SwipeRefreshActivity) {
+                binding = DataBindingUtil.setContentView(this, R.layout.container_swipe_refresh)
+                swipeRefreshLayout = findViewById(R.id.swipe_refresh_layout)
 
-            initSwipeRefresh()
+                initSwipeRefresh()
+
+            } else {
+                setContentView(R.layout.container_base)
+            }
 
         } else {
-            setContentView(R.layout.container_base)
+            binding = DataBindingUtil.setContentView(this,
+                if (scroll()) R.layout.container_base_nav_host_scroll
+                else R.layout.container_base_nav_host
+            )
+            initGraph(graph)
         }
 
         rootView = findViewById(R.id.page_container)
+        container = findViewById(R.id.container)
         frameLayout = findViewById(R.id.frame_layout)
         progressInline = findViewById(R.id.progress_inline)
 
         if (layoutId() != 0) {
-            binding = DataBindingUtil.inflate(layoutInflater, layoutId(), frameLayout, true)
+            binding = DataBindingUtil.inflate(layoutInflater, layoutId(), container as ViewGroup, true)
+        }
+
+        if (scroll()) {
+            nestedScrollView = findViewById(R.id.nested_scroll_view)
         }
     }
 
+    private fun initGraph(graph: NavGraphModel) {
+        val navHostFragment = navHostFragment()
+        navController = navHostFragment.navController
+
+        navController?.run {
+            val navGraph = navInflater.inflate(graph.graphId)
+            if (graph.startDestinationId != 0) {
+                navGraph.setStartDestination(graph.startDestinationId)
+            }
+
+            if (graph.startDestinationArgs != null) {
+                setGraph(navGraph, graph.startDestinationArgs)
+
+            } else {
+                this.graph = navGraph
+            }
+        }
+    }
+
+    private fun navHostFragment() = supportFragmentManager.findFragmentById(R.id.container) as NavHostFragment
+
     private fun initToolbar() {
-        val toolBar = findViewById<Toolbar>(R.id.toolbar)
+        val toolBar = findViewById<Toolbar>(R.id.widget_toolbar)
         toolBar?.let {
             setSupportActionBar(it)
             initPageTitle(pageTitle())
@@ -217,49 +196,81 @@ abstract class BaseActivity<Data, ChildViewModel : DataViewModel<Data>, Binding 
         findViewById<TextView>(R.id.title).text = title
     }
 
-/*    override fun loadingInline(show: Boolean) {
-        progressInline.visibility = if (show) View.VISIBLE else View.GONE
-    }*/
-
-    protected fun showFragment(fragment: androidx.fragment.app.Fragment) {
+    protected fun showFragment(fragment: Fragment) {
         showFragment(R.id.frame_layout, fragment)
     }
 
-    protected fun showFragment(@IdRes container: Int, fragment: androidx.fragment.app.Fragment) {
+    protected fun showFragment(@IdRes container: Int, fragment: Fragment) {
         showFragment(container, fragment, true)
     }
 
-    protected fun showFragment(
-        @IdRes container: Int,
-        fragment: androidx.fragment.app.Fragment,
-        animate: Boolean
-    ) {
-        fragmentDispatcher.dispatcherFragment(container, fragment, animate)
+    protected fun showFragment(@IdRes container: Int, fragment: Fragment, animate: Boolean, ) {
+        if (getExistingFragment<Fragment>(container) == null) {
+            addFragment(container, fragment)
+
+        } else {
+            replaceFragment(container, fragment, animate)
+        }
     }
 
-    protected fun <T : androidx.fragment.app.Fragment> getExistingFragment(): T? {
+    private fun addFragment(@IdRes container: Int, fragment: Fragment, allowStateLoss: Boolean = false) {
+        val trans = supportFragmentManager.beginTransaction()
+            .add(container, fragment, fragment.javaClass.name)
+
+        if (!allowStateLoss) {
+            trans.commit()
+
+        } else {
+            trans.commitAllowingStateLoss()
+        }
+    }
+
+    private fun replaceFragment(@IdRes container: Int, fragment: Fragment, animate: Boolean, allowStateLoss: Boolean = false) {
+
+        val fragmentTransaction = supportFragmentManager.beginTransaction()
+        //Custom animations MUST be set before .replace() is called or they will fail.
+        if (animate) {
+            //todo setCustomAnimations(fragmentTransaction)
+        }
+        fragmentTransaction.replace(container, fragment, fragment.javaClass.name)
+
+        val existing = getExistingFragment<androidx.fragment.app.Fragment>(container)
+        if (existing != null) {//todo add checks to skip adding to backstack
+            fragmentTransaction.addToBackStack(existing.javaClass.name)
+        }
+
+        if (!allowStateLoss) {
+            fragmentTransaction.commit()
+
+        } else {
+            fragmentTransaction.commitAllowingStateLoss()
+        }
+    }
+
+    protected fun <T : Fragment> getExistingFragment(): T? {
         return getExistingFragment(R.id.frame_layout)
     }
 
     @Suppress("UNCHECKED_CAST")
-    protected fun <T : androidx.fragment.app.Fragment> getExistingFragment(@IdRes id: Int): T? {
-        return fragmentDispatcher.getExistingFragment(id)
-    }
-
-    protected fun <T : androidx.fragment.app.Fragment> getExistingFragment(tag: String): T? {
-        return fragmentDispatcher.getExistingFragment(tag)
+    protected fun <T : Fragment> getExistingFragment(@IdRes id: Int): T? {
+        return supportFragmentManager.findFragmentById(id) as? T
     }
 
     @Suppress("UNCHECKED_CAST")
-    protected fun <T : androidx.fragment.app.Fragment> getCurrentFragmentNav(): T? {
+    protected fun <T : Fragment> getExistingFragment(tag: String): T? {
+        return supportFragmentManager.findFragmentByTag(tag) as? T
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    protected fun <T : Fragment> getCurrentFragmentNav(): T? {
         return hostFragment?.childFragmentManager?.primaryNavigationFragment as T?
     }
 
     //hook
-    override fun onPrimaryAction(fragment: androidx.fragment.app.Fragment) {
+    override fun onPrimaryAction(fragment: Fragment) {
     }
 
-    private fun isParentActivity() = supportParentActivityIntent == null
+    fun isParentActivity() = supportParentActivityIntent == null
 
     private fun initSwipeRefresh() {
         swipeRefreshLayout?.setOnRefreshListener { performRefresh(true) }
@@ -281,12 +292,12 @@ abstract class BaseActivity<Data, ChildViewModel : DataViewModel<Data>, Binding 
 
     override fun showLoading() {
         if (!isRefreshing()) {
-            progressInline.visibility = View.VISIBLE
+            progressInline?.visibility = View.VISIBLE
         }
     }
 
     override fun hideLoading() {
-        progressInline.visibility = View.GONE
+        progressInline?.visibility = View.GONE
         if (this is SwipeRefreshActivity) {
             setRefreshing(false)
         }

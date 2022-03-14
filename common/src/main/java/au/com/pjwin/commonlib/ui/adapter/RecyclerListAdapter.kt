@@ -1,56 +1,56 @@
 package au.com.pjwin.commonlib.ui.adapter
 
 import android.content.Context
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.LayoutRes
+import androidx.annotation.VisibleForTesting
 import androidx.databinding.DataBindingUtil
 import androidx.databinding.ViewDataBinding
 import androidx.recyclerview.widget.RecyclerView
 
 @Suppress("UNCHECKED_CAST")
-abstract class RecyclerListAdapter<Data, Binding : ViewDataBinding, ViewHolder : androidx.recyclerview.widget.RecyclerView.ViewHolder>() :
+abstract class RecyclerListAdapter<Data, Binding : ViewDataBinding, ViewHolder : RecyclerView.ViewHolder>(
+    context: Context,
+    list: List<Data>,
+    private val onClickListener: ListClickListener<Data>? = null
+) :
     RecyclerView.Adapter<ViewHolder>() {
 
-    var list: List<Data>? = null
+    var list: List<Data> = list
         set(value) {
             field = value
             notifyDataSetChanged()
         }
 
-    protected lateinit var layoutInflater: LayoutInflater
-
-    private var onClickListener: ListClickListener<Data>? = null
-
-    constructor(context: Context, list: List<Data>?) : this() {
-        layoutInflater = LayoutInflater.from(context)
-        this.list = list
-    }
-
-    constructor(
-        context: Context,
-        list: List<Data>,
-        onClickListener: ListClickListener<Data>
-    ) : this(context, list) {
-        this.onClickListener = onClickListener
-    }
+    private var layoutInflater: LayoutInflater = LayoutInflater.from(context)
 
     @LayoutRes
     protected abstract fun layoutId(): Int
 
+    @LayoutRes
+    @VisibleForTesting(otherwise = VisibleForTesting.PROTECTED)
+    open fun layoutIdByViewType(viewType: Int): Int = 0
+
     protected abstract fun bindData(binding: Binding, data: Data)
 
-    private fun getItem(position: Int): Data? = list?.let { it[position] }
+    protected fun getItem(position: Int): Data = list[position]
 
-    override fun getItemCount() = list?.size ?: 0
+    override fun getItemCount() = list.size
 
     protected fun viewHolder(view: View): ViewHolder {
         return RecyclerViewHolder(view) as ViewHolder
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val binding = DataBindingUtil.inflate<Binding>(layoutInflater, layoutId(), parent, false)
+        val binding = DataBindingUtil.inflate<Binding>(
+            layoutInflater,
+            if (layoutId() == 0) layoutIdByViewType(viewType) else layoutId(),
+            parent,
+            false
+        )
         return viewHolder(binding.root)
     }
 
@@ -62,7 +62,7 @@ abstract class RecyclerListAdapter<Data, Binding : ViewDataBinding, ViewHolder :
                 bindData(bind, data)
 
                 onClickListener?.let { listener ->
-                    binding.root.setOnClickListener { listener.onClick(data) }
+                    binding.root.setOnClickListener { listener.onClick(data, position) }
                 }
             }
         }

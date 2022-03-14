@@ -4,16 +4,15 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <RelativeLayout
+        android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="@dimen/action_bar_size">
 
         <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
+            android:id="@+id/widget_toolbar"
             android:layout_width="match_parent"
             android:layout_height="@dimen/action_bar_size"
             android:background="?attr/colorPrimary"
-            app:contentInsetLeft="0dp"
-            app:contentInsetStart="0dp"
             app:popupTheme="@style/AppTheme.PopupOverlay">
 
         </androidx.appcompat.widget.Toolbar>

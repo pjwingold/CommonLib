@@ -26,14 +26,13 @@
 <!--todo add support for scroll or not -->
             <androidx.core.widget.NestedScrollView
                 style="@style/SectionScroll"
-                android:layout_below="@id/toolbar_include">
+                android:layout_below="@id/toolbar_include"
+                app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-                <androidx.fragment.app.FragmentContainerView
+                <FrameLayout
                     android:id="@+id/frame_layout"
                     style="@style/MatchParentLayout"
-                    android:layout_below="@id/toolbar_include">
-
-                </androidx.fragment.app.FragmentContainerView>
+                    android:layout_below="@id/toolbar_include" />
 
             </androidx.core.widget.NestedScrollView>
 

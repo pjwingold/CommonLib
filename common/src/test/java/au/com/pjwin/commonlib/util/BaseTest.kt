@@ -1,14 +1,25 @@
 package au.com.pjwin.commonlib.util
 
 import androidx.annotation.CallSuper
+import androidx.databinding.ViewDataBinding
+import au.com.pjwin.commonlib.ui.BaseActivity
+import au.com.pjwin.commonlib.ui.BaseFragment
+import au.com.pjwin.commonlib.viewmodel.VoidViewModel
 import io.mockk.MockKAnnotations
-import okhttp3.mockwebserver.MockWebServer
+import io.mockk.unmockkAll
 import org.junit.After
 import org.junit.Before
+import org.junit.runner.RunWith
+import org.robolectric.Robolectric
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.android.controller.ActivityController
+import org.robolectric.annotation.Config
+import org.robolectric.annotation.LooperMode
 
+@RunWith(RobolectricTestRunner::class)
 abstract class BaseTest {
 
-    protected var mockServer: MockWebServer? = null
+    protected var activityController: ActivityController<*>? = null
 
     @CallSuper
     @Before
@@ -16,27 +27,26 @@ abstract class BaseTest {
         MockKAnnotations.init(this)
     }
 
-    @CallSuper
-    open fun init() {
-        mockServer = MockResource.initMockWebServer()
-    }
-
     @After
-    @Throws
-    fun after() {
-        mockServer?.shutdown()
+    open fun cleanUp() {
+        unmockkAll()
+        activityController?.run { pause().stop().destroy() }
     }
 
-    protected fun await() {
-        mockServer?.let {
-            for (i in 0 until it.requestCount) {
-                it.takeRequest()
-            }
+    protected fun buildTestActivity(): TestActivity {
+        if (activityController == null) {
+            activityController = Robolectric.buildActivity(TestActivity::class.java).create()
         }
+
+        return activityController!!.resume().get() as TestActivity
     }
 
-    protected fun resetServer() {
-        mockServer?.shutdown()
-        mockServer = MockResource.initMockWebServer()//mock server cannot be restarted
+    class TestActivity : BaseActivity<Void, VoidViewModel, ViewDataBinding>() {
+
+        override fun layoutId() = 0
+
+        fun attachFragment(fragment: BaseFragment<*, *, *>) {
+            showFragment(fragment)
+        }
     }
 }

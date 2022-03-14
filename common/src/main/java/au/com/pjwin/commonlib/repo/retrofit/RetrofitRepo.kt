@@ -2,6 +2,7 @@ package au.com.pjwin.commonlib.repo.retrofit
 
 import android.annotation.SuppressLint
 import au.com.pjwin.commonlib.Common
+import au.com.pjwin.commonlib.repo.retrofit.moshi.MOSHI_CONVERTER_FACTORY
 import okhttp3.Cache
 import okhttp3.Dispatcher
 import okhttp3.Interceptor
@@ -14,12 +15,12 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.converter.simplexml.SimpleXmlConverterFactory
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 /**
@@ -38,8 +39,11 @@ object RetrofitRepo {
     )
 
     private val HTTP_LOG_INTERCEPTOR by lazy {
-        HttpLoggingInterceptor()
-            .setLevel(if (Common.config.debug()) HttpLoggingInterceptor.Level.BODY else HttpLoggingInterceptor.Level.NONE)
+        val httpLoggingInterceptor = HttpLoggingInterceptor()
+        httpLoggingInterceptor.apply {
+            httpLoggingInterceptor.level =
+                if (Common.config.debug()) HttpLoggingInterceptor.Level.BODY else HttpLoggingInterceptor.Level.NONE
+        }
     }
 
     private val BASIC_AUTH_INTERCEPTOR by lazy {
@@ -77,16 +81,17 @@ object RetrofitRepo {
         Retrofit.Builder()
             .baseUrl(BASE_URL)
             .client(httpClient(HTTP_LOG_INTERCEPTOR))
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(MOSHI_CONVERTER_FACTORY)
             .build()
     }
+
 
     @JvmStatic
     val RETROFIT_BASIC_AUTH: Retrofit by lazy {
         Retrofit.Builder()
             .baseUrl(BASE_URL)
             .client(httpClient(HTTP_LOG_INTERCEPTOR, BASIC_AUTH_INTERCEPTOR))
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(MOSHI_CONVERTER_FACTORY)
             .build()
     }
 
@@ -122,7 +127,8 @@ object RetrofitRepo {
             .header("Connection", "close")
             .header("Accept", Common.config.acceptHeader())
             .header("Authorization", authorisation)
-            //todo add UserAgent
+            //.header("User-Agent", String.format("%s %s-%s (Android %s)", Common.config.(),
+            //Common.config.appVersionName(), Common.config.appVersionCode(), Build.VERSION.RELEASE))
             .method(original.method, original.body)
 
         return chain.proceed(builder.build())
@@ -144,11 +150,12 @@ object RetrofitRepo {
         enqueue(call, success, error) {}
     }
 
+    @Deprecated("")
     fun <T> enqueue(
         call: Call<T>,
         success: (T?) -> Unit,
         error: (Throwable) -> Unit,
-        received: (Boolean) -> Unit
+        received: (Boolean) -> Unit,
     ) {
         enqueue(call, object : Feedback<T>() {
             override fun success(model: T?) {
@@ -165,6 +172,7 @@ object RetrofitRepo {
         })
     }
 
+    @Deprecated("use coroutine")
     fun <T> enqueue(call: Call<T>, feedback: Feedback<T>) {
         call.enqueue(object : Callback<T> {
             override fun onResponse(call: Call<T>, response: Response<T>) {
@@ -203,4 +211,3 @@ object RetrofitRepo {
         }
     }
 }
-

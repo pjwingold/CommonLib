@@ -10,6 +10,10 @@
         <item name="android:textSize">@dimen/header1_text</item>
     </style>
 
+    <style name="Header.H5">
+        <item name="android:textSize">@dimen/header5_text</item>
+    </style>
+
     <style name="Header.Title">
         <item name="android:layout_width">match_parent</item>
         <item name="android:gravity">center</item>

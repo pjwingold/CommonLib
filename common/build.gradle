@@ -3,7 +3,6 @@ ext.versionCode = 1
 
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
 
 android {
@@ -34,22 +33,30 @@ android {
         jvmTarget = "1.8"
     }
 
-    dataBinding {
-        enabled = true
+    buildFeatures {
+        dataBinding = true
+    }
+
+    sourceSets {
+        main {
+            java.srcDirs = [
+                    "src/main/java"
+            ]
+        }
     }
 }
 
 dependencies {
     String retrofitVersion = '2.9.0'
-    String okHttpVersion = '4.2.2'
+    String okHttpVersion = '4.9.0'
     //def room_version = '1.1.1'
     String lifecycle_version = "2.2.0"
-    String fireBaseDBVersion = "19.5.1"
-    String coroutineVersion = '1.3.7'
-    String navigationVersion = "2.3.2"
+    String fireBaseDBVersion = "20.0.1"
+    String coroutineVersion = '1.5.0'
+    String navigationVersion = "2.4.1"
     String mockkVersion = prop("version.mockk")
-    String koinVersion = "0.9.1"
-    String androidXVersion = "1.2.0"
+    String androidXVersion = "1.4.1"
+    String moshiVersion = "1.13.0"
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation"org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
@@ -57,22 +64,21 @@ dependencies {
     api "androidx.appcompat:appcompat:$androidXVersion"
     api "androidx.legacy:legacy-support-v4:1.0.0"
     api "androidx.legacy:legacy-support-v13:1.0.0"
-    api "com.google.android.material:material:1.2.1"
-    //api "androidx.recyclerview:recyclerview:$androidXVersion"
+    api "com.google.android.material:material:1.5.0"
 
-    api 'androidx.constraintlayout:constraintlayout:2.0.4'
+    api 'androidx.constraintlayout:constraintlayout:2.1.3'
 
     api "com.squareup.okhttp3:logging-interceptor:$okHttpVersion"
     api "com.squareup.okhttp3:okhttp-urlconnection:$okHttpVersion"
     api "com.squareup.retrofit2:converter-gson:$retrofitVersion"
     api "com.squareup.retrofit2:converter-scalars:$retrofitVersion"
     api "com.squareup.retrofit2:retrofit:$retrofitVersion"
+    api "com.squareup.retrofit2:converter-moshi:2.4.0"
+    api "com.squareup.moshi:moshi:$moshiVersion"
+    api "com.squareup.moshi:moshi-adapters:$moshiVersion"
 
     api "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutineVersion"
-    api "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutineVersion"
-
-    //cannot use testImplementation
-    api 'com.squareup.okhttp3:mockwebserver:3.10.0'
+    api "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2"
 
     api ("com.squareup.retrofit2:converter-simplexml:$retrofitVersion") {
         exclude group: "xpp3", module: "xpp3"
@@ -85,15 +91,21 @@ dependencies {
     api "androidx.lifecycle:lifecycle-extensions:$lifecycle_version"
     api "androidx.lifecycle:lifecycle-common-java8:$lifecycle_version"
     api "androidx.navigation:navigation-fragment-ktx:$navigationVersion"
+    api "androidx.navigation:navigation-common-ktx:$navigationVersion"
     api "androidx.navigation:navigation-ui-ktx:$navigationVersion"
 
-    testImplementation "io.mockk:mockk:$mockkVersion"//need to for BaseTest
+    implementation "com.google.dagger:hilt-android:$hilt_version"
+    kapt "com.google.dagger:hilt-compiler:$hilt_version"
 
     //api "android.arch.persistence.room:runtime:$room_version"
     //kapt "android.arch.persistence.room:compiler:$room_version"
 
-    testImplementation 'junit:junit:4.13.1'
+    testImplementation 'com.squareup.okhttp3:mockwebserver:4.9.0'
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation "io.mockk:mockk:$mockkVersion"
+    testImplementation "androidx.arch.core:core-testing:2.1.0"
+    testImplementation 'androidx.navigation:navigation-testing:2.4.1'
 
-    androidTestImplementation 'androidx.test.ext:junit:1.1.2'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.3'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
 }

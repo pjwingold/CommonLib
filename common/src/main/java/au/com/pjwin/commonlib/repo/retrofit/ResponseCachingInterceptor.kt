@@ -12,10 +12,9 @@ class ResponseCachingInterceptor: Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
         val request = chain.request()
         val headers = request.headers
-        val response: Response
 
         //todo cache framework
-        response = if (isCacheRequired(headers)) {
+        val response: Response = if (isCacheRequired(headers)) {
             val newRequest = request.newBuilder()
 
             if (isForceRefresh(headers)) {

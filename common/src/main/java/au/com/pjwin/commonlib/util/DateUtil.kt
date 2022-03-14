@@ -6,7 +6,7 @@ import java.util.Locale
 
 object DateUtil {
 
-    private val LOCALE = Locale.ENGLISH
+    private val LOCALE = Locale.ROOT
 
     private val FORMAT_TIME_24 = SimpleDateFormat("HH:mm", LOCALE)
 

@@ -10,6 +10,7 @@ import android.view.View
 import android.widget.EditText
 import android.widget.Toast
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
 import au.com.pjwin.commonlib.R
 import au.com.pjwin.commonlib.util.Util
 import au.com.pjwin.commonlib.viewmodel.DataViewModel
@@ -59,18 +60,16 @@ interface DataView<Data> : LifecycleOwner {
         return null
     }
 
-    fun registerObservers(dataViewModel: DataViewModel<Data>) {
-        dataViewModel.liveData.observe(this, { onData(it) })
-        dataViewModel.errorData.observe(this, { onError(it) })
-        dataViewModel.loadingData.observe(this, { loading ->
+    fun registerObservers(dataViewModel: DataViewModel<Data>, lifecycleOwner: LifecycleOwner = this) {
+        dataViewModel.liveData.observe(lifecycleOwner, { onData(it) })
+        dataViewModel.errorData.observe(lifecycleOwner, { onError(it) })
+        dataViewModel.loadingData.observe(lifecycleOwner, { loading ->
             if (loading == true) showLoading()
             else hideLoading()
         })
     }
 
-    fun onData(data: Data?) {
-
-    }
+    fun onData(data: Data?) {}
 
     @Suppress("UNCHECKED_CAST")
     fun <T : BaseActivity<*, *, *>> getBaseActivity(): T {
@@ -145,7 +144,7 @@ interface DataView<Data> : LifecycleOwner {
 
     fun showBasicInputDialog(@StringRes titleId: Int, okAction: (String) -> Unit, cancelAction: (() -> Unit)? = null) {
         val activity: BaseActivity<*, *, *> = getBaseActivity()
-        if (activity.isFinishing() || activity.isDestroyed()) {
+        if (activity.isFinishing || activity.isDestroyed) {
             return
         }
 
